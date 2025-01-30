@@ -1,0 +1,21 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- 经典 AppCompat 主题，去除 Material 3 -->
+    <style name="Base.Theme.Mobile" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- 主要颜色 -->
+        <item name="colorPrimary">@color/blue_primary</item>
+        <item name="colorPrimaryDark">@color/blue_primary_variant</item>
+
+        <!-- 替代 `colorPrimaryLight`，用于按钮点击等 -->
+        <item name="colorSecondary">@color/accent</item>
+
+        <!-- 背景色 -->
+        <item name="android:windowBackground">@color/background</item>
+
+    </style>
+
+    <!-- 修正名称，删除多余的 `.` -->
+    <style name="Base.Theme.BaitmateMobile" parent="Base.Theme.Mobile" />
+
+    <!-- 确保 `Theme.BaitmateMobile` 存在 -->
+    <style name="Theme.BaitmateMobile" parent="Base.Theme.BaitmateMobile" />
+</resources>

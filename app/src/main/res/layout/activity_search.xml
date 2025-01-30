@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="activity"
+            type="com.example.baitmatemobile.activity.SearchActivity" />
+        <variable
+            name="searchQuery"
+            type="String" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".activity.SearchActivity"
+        android:background="@color/background">
+
+        <!-- 顶部搜索栏 -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/top_bar"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@color/white"
+            android:elevation="6dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <!-- 返回按钮 -->
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_back"
+                android:contentDescription="Back"
+                android:scaleType="fitCenter"
+                android:layout_marginStart="12dp"
+                android:layout_marginVertical="8dp"
+                android:onClick="@{() -> activity.finish()}"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+
+            <!-- 搜索输入框 -->
+            <EditText
+                android:id="@+id/searchInput"
+                android:layout_width="0dp"
+                android:layout_height="34dp"
+                android:hint="Search..."
+                android:paddingHorizontal="10dp"
+                android:background="@drawable/rounded_edittext"
+                android:textSize="14sp"
+                android:inputType="text"
+                android:gravity="center_vertical"
+                android:text="@={searchQuery}"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                app:layout_constraintStart_toEndOf="@id/btnBack"
+                app:layout_constraintEnd_toStartOf="@id/btnSearch"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+
+            <!-- 搜索按钮 -->
+            <ImageView
+                android:id="@+id/btnSearch"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_search"
+                android:contentDescription="Search"
+                android:scaleType="fitCenter"
+                android:layout_marginEnd="12dp"
+                android:layout_marginVertical="8dp"
+                android:onClick="@{() -> activity.performSearch(searchQuery)}"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- 搜索结果列表 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintTop_toBottomOf="@id/top_bar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:listitem="@layout/item_search_result"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
