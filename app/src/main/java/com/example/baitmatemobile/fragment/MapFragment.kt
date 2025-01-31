@@ -3,9 +3,15 @@ package com.example.baitmatemobile.fragment
 import androidx.fragment.app.Fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.android.volley.Request
+import com.android.volley.RequestQueue
+import com.android.volley.Response
+import com.android.volley.toolbox.JsonArrayRequest
+import com.android.volley.toolbox.Volley
 import com.example.baitmatemobile.R
 
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -13,23 +19,21 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import org.json.JSONArray
 
 class MapFragment : Fragment() {
 
-    private val callback = OnMapReadyCallback { googleMap ->
-        /**
-         * Manipulates the map once available.
-         * This callback is triggered when the map is ready to be used.
-         * This is where we can add markers or lines, add listeners or move the camera.
-         * In this case, we just add a marker near Sydney, Australia.
-         * If Google Play services is not installed on the device, the user will be prompted to
-         * install it inside the SupportMapFragment. This method will only be triggered once the
-         * user has installed Google Play services and returned to the app.
-         */
-        val sydney = LatLng(-34.0, 151.0)
-        googleMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+    private lateinit var googleMap: GoogleMap
+    private lateinit var requestQueue: RequestQueue
+
+    private val callback = OnMapReadyCallback { map ->
+        googleMap = map
+        // Move the camera to a default location (Singapore coordinates)
+        val singapore = LatLng(1.3521, 103.8198)
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(singapore, 10f))
+        fetchFishingHotspots()
     }
 
     override fun onCreateView(
@@ -44,5 +48,48 @@ class MapFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(callback)
+
+        requestQueue = Volley.newRequestQueue(requireContext())
+    }
+
+    private fun fetchFishingHotspots() {
+        val url = "http://10.0.2.2:8080/api/locations"
+
+        val request = JsonArrayRequest(
+            Request.Method.GET, url, null,
+            { response ->
+                Log.d("MapFragment", "Response received.")
+                addMarkersToMap(response)
+            },
+            { error ->
+                Log.e("MapFragment", "Request error: ${error.message}")
+                error.printStackTrace()
+            }
+        )
+
+        requestQueue.add(request)
+    }
+
+    private fun addMarkersToMap(response: JSONArray) {
+        Log.d("MapFragment", "Parsing response, total locations: ${response.length()}")
+        if (response.length()>0) {
+            for (i in 0 until response.length()) {
+                try{
+                    val location = response.getJSONObject(i)
+                    val name = location.getString("locationName")
+                    val latitude = location.getDouble("latitude")
+                    val longitude = location.getDouble("longitude")
+
+                    Log.d("MapFragment", "Adding Marker: $name at ($latitude, $longitude)")
+
+                    val position = LatLng(latitude, longitude)
+                    googleMap.addMarker(MarkerOptions().position(position).title(name))
+                } catch (e: Exception) {
+                    Log.e("MapFragment", "Error parsing location at index $i: ${e.message}")
+                }
+            }
+        } else {
+            Log.d("MapFragment", "No locations found in response")
+        }
     }
 }
