@@ -1,5 +1,6 @@
 package com.example.baitmatemobile.fragment
 
+import android.content.Context
 import androidx.fragment.app.Fragment
 
 import android.os.Bundle
@@ -35,13 +36,10 @@ class MapFragment : Fragment() {
 
     private lateinit var googleMap: GoogleMap
     private lateinit var requestQueue: RequestQueue
+    private val markers = mutableMapOf<String, Marker?>()
 
     private val callback = OnMapReadyCallback { map ->
         googleMap = map
-        // Move the camera to a default location (Singapore coordinates)
-        val singapore = LatLng(1.3521, 103.8198)
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(singapore, 10f))
-        fetchFishingHotspots()
 
         googleMap.setInfoWindowAdapter(object: GoogleMap.InfoWindowAdapter {
             override fun getInfoWindow(marker: Marker): View? {
@@ -58,6 +56,11 @@ class MapFragment : Fragment() {
                 return view
             }
         })
+
+        // Move the camera to a default location (Singapore coordinates)
+        val singapore = LatLng(1.3521, 103.8198)
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(singapore, 10f))
+        fetchFishingHotspots()
     }
 
     override fun onCreateView(
@@ -107,7 +110,8 @@ class MapFragment : Fragment() {
                     Log.d("MapFragment", "Adding Marker: $name at ($latitude, $longitude)")
 
                     val position = LatLng(latitude, longitude)
-                    googleMap.addMarker(MarkerOptions().position(position).title(name))
+                    val marker = googleMap.addMarker(MarkerOptions().position(position).title(name))
+                    markers[name] = marker
                     fetchWeatherForecast(name, position)
                 } catch (e: Exception) {
                     Log.e("MapFragment", "Error parsing location at index $i: ${e.message}")
@@ -117,10 +121,6 @@ class MapFragment : Fragment() {
             Log.d("MapFragment", "No locations found in response")
         }
 
-        googleMap.setOnMarkerClickListener { marker ->
-            marker.showInfoWindow()
-            true
-        }
     }
 
     private fun fetchWeatherForecast(locationName: String, position: LatLng) {
@@ -129,8 +129,8 @@ class MapFragment : Fragment() {
         val request = JsonObjectRequest(
             Request.Method.GET, url, null,
             { response ->
-                Log.d("MapFragment", "Weather response received.")
                 val forecast = parseWeatherForecast(response, position)
+                Log.d("MapFragment", "Forecast for $locationName updated to $forecast")
                 val validPeriod = parseValidPeriod(response)
                 updateMarkerWithWeather(position, locationName, forecast, validPeriod)
             },
@@ -153,6 +153,7 @@ class MapFragment : Fragment() {
             val labelLocation = area.getJSONObject("label_location")
             val areaLatLng = LatLng(labelLocation.getDouble("latitude"), labelLocation.getDouble("longitude"))
             val distance = calculateDistance(position, areaLatLng)
+
             if (distance < minDistance) {
                 minDistance = distance
                 nearestForecast = forecasts.getJSONObject(i).getString("forecast")
@@ -174,12 +175,15 @@ class MapFragment : Fragment() {
     }
 
     private fun updateMarkerWithWeather(position: LatLng, locationName: String, forecast: String, validPeriod: String) {
-        googleMap.addMarker(
-            MarkerOptions()
-                .position(position)
-                .title(locationName)
-                .snippet("2h forecast: $forecast\nValid: $validPeriod")
-        )
+        val marker = markers[locationName]
+        if (marker!=null) {
+            marker.snippet = "2h forecast: $forecast\n" +
+                    "Valid: $validPeriod"
+            //marker.showInfoWindow()
+            Log.d("MapFragment", "Marker for $locationName updated with forecast: $forecast and valid period: $validPeriod")
+        } else {
+            Log.e("MapFragment", "Marker for $locationName not found")
+        }
     }
 
 }
