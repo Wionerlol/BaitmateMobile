@@ -19,8 +19,13 @@ class MainActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.activity = this
 
-        // 默认加载 HomeFragment
-        replaceFragment(HomeFragment())
+        val isLoggedIn = true // to change to sharedPreferences after login page is ready
+
+        if(isLoggedIn) {
+            replaceFragment(HomeFragment())
+        } else {
+            replaceFragment(LoginFragment())
+        }
 
         // 绑定底部导航栏
         binding.bottomNav.setOnItemSelectedListener { item ->

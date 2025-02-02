@@ -26,9 +26,6 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import org.json.JSONArray
 import org.json.JSONObject
-import java.text.SimpleDateFormat
-import java.util.*
-import java.util.Locale
 import kotlin.math.pow
 import kotlin.math.sqrt
 
