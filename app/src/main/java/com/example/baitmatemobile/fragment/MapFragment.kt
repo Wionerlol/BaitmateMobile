@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.Response
@@ -41,6 +42,22 @@ class MapFragment : Fragment() {
         val singapore = LatLng(1.3521, 103.8198)
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(singapore, 10f))
         fetchFishingHotspots()
+
+        googleMap.setInfoWindowAdapter(object: GoogleMap.InfoWindowAdapter {
+            override fun getInfoWindow(marker: Marker): View? {
+                return null
+            }
+            override fun getInfoContents(marker: Marker): View {
+                val view = layoutInflater.inflate(R.layout.custom_info_window, null)
+                val title = view.findViewById<TextView>(R.id.info_window_title)
+                val snippet = view.findViewById<TextView>(R.id.info_window_snippet)
+
+                title.text = marker.title
+                snippet.text = marker.snippet
+
+                return view
+            }
+        })
     }
 
     override fun onCreateView(
@@ -107,8 +124,7 @@ class MapFragment : Fragment() {
     }
 
     private fun fetchWeatherForecast(locationName: String, position: LatLng) {
-        val currentTime = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(Date())
-        val url = "https://api-open.data.gov.sg/v2/real-time/api/two-hr-forecast?date=$currentTime"
+        val url = "https://api-open.data.gov.sg/v2/real-time/api/two-hr-forecast"
 
         val request = JsonObjectRequest(
             Request.Method.GET, url, null,
