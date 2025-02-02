@@ -1,6 +1,7 @@
 package com.example.baitmatemobile.fragment
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import androidx.fragment.app.Fragment
 import com.example.baitmatemobile.R
+import com.example.baitmatemobile.activity.LoginActivity
 
 class ProfileFragment : Fragment() {
 
@@ -29,8 +31,9 @@ class ProfileFragment : Fragment() {
         editor.clear()
         editor.apply()
 
-        requireActivity().supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, LoginFragment())
-            .commit()
+        val intent = Intent(requireActivity(), LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        requireActivity().finish()
     }
 }

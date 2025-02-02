@@ -20,14 +20,7 @@ class MainActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.activity = this
 
-        val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false)
-
-        if(isLoggedIn) {
-            replaceFragment(HomeFragment())
-        } else {
-            replaceFragment(LoginFragment())
-        }
+        replaceFragment(HomeFragment())
 
         // 绑定底部导航栏
         binding.bottomNav.setOnItemSelectedListener { item ->
