@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -50,25 +51,23 @@ class LoginActivity : AppCompatActivity() {
         val loginRequest = LoginRequest(username, password)
         RetrofitClient.instance.login(loginRequest).enqueue(object : Callback<LoginResponse> {
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
+
                 if (response.isSuccessful && response.body() != null) {
                     val loginResponse = response.body()
-                    // Save login status to SharedPreferences
-                    saveLoginStatus(loginResponse)
-
-                    val userStatus = sharedPreferences.getString("status", "inactive")
-                    if (userStatus.equals("active", ignoreCase = true)) {
+                    if (loginResponse?.errorMessage != null) {
+                        Toast.makeText(this@LoginActivity, loginResponse.errorMessage, Toast.LENGTH_SHORT).show()
+                    } else {
+                        // Save login status to SharedPreferences
+                        saveLoginResponse(loginResponse)
                         Toast.makeText(this@LoginActivity, "Login successful", Toast.LENGTH_SHORT).show()
 
                         val intent = Intent(this@LoginActivity, MainActivity::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)
                         finish()
-                    } else {
-                        Toast.makeText(this@LoginActivity, "User account is not active", Toast.LENGTH_SHORT).show()
                     }
-
                 } else {
-                    Toast.makeText(this@LoginActivity, "Invalid username or password", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@LoginActivity, "Login failed", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -78,14 +77,12 @@ class LoginActivity : AppCompatActivity() {
         })
     }
 
-    private fun saveLoginStatus(loginResponse: LoginResponse?) {
+    private fun saveLoginResponse(loginResponse: LoginResponse?) {
+        Log.d("LoginActivity", "Saving login response: $loginResponse")
         val editor = sharedPreferences.edit()
-        editor.putBoolean("isLoggedIn", true)
-        if (loginResponse?.id != null) {
-            editor.putLong("userId", loginResponse?.id)
-        }
-        editor.putString("username", loginResponse?.username)
-        editor.putString("status", loginResponse?.userStatus)
+        loginResponse?.user?.id?.let { editor.putLong("userId", it) }
+        editor.putString("auth_token", loginResponse?.token)
+        editor.putString("username", loginResponse?.user?.username)
         editor.apply()
     }
 

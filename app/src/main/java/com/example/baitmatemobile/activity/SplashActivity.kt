@@ -9,9 +9,9 @@ class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false)
+        val authToken = sharedPreferences.getString("auth_token", null)
 
-        if (isLoggedIn) {
+        if (authToken != null) {
             startActivity(Intent(this, MainActivity::class.java))
 
         } else {

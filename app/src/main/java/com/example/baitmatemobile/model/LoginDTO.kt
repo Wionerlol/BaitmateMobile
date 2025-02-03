@@ -6,9 +6,7 @@ data class LoginRequest(
 )
 
 data class LoginResponse(
-    val id: Long?,
-    val username: String?,
-    val email: String?,
-    val userStatus: String?,
-    val error: String? = null  // Optional field for error message
+    val user: User,
+    val token: String,
+    val errorMessage: String? = null// Optional field for error message
 )

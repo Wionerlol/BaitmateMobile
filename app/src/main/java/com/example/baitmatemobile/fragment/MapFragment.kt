@@ -148,7 +148,7 @@ class MapFragment : Fragment() {
                     val latitude = location.getDouble("latitude")
                     val longitude = location.getDouble("longitude")
 
-                    Log.d("MapFragment", "Adding Marker: $name at ($latitude, $longitude)")
+                    //Log.d("MapFragment", "Adding Marker: $name at ($latitude, $longitude)")
 
                     val position = LatLng(latitude, longitude)
                     val marker = googleMap.addMarker(MarkerOptions().position(position).title(name))
@@ -168,7 +168,6 @@ class MapFragment : Fragment() {
         // Use the preloaded weather forecast if available.
         if (weatherForecastResponse != null) {
             val forecast = parseWeatherForecast(weatherForecastResponse!!, position)
-            Log.d("MapFragment", "Forecast for $locationName updated to $forecast")
             val validPeriod = parseValidPeriod(weatherForecastResponse!!)
             updateMarkerWithWeather(position, locationName, forecast, validPeriod)
         } else {
@@ -178,7 +177,7 @@ class MapFragment : Fragment() {
                 Request.Method.GET, url, null,
                 { response ->
                     val forecast = parseWeatherForecast(response, position)
-                    Log.d("MapFragment", "Forecast for $locationName updated to $forecast")
+                    //Log.d("MapFragment", "Forecast for $locationName updated to $forecast")
                     val validPeriod = parseValidPeriod(response)
                     updateMarkerWithWeather(position, locationName, forecast, validPeriod)
                 },
@@ -229,7 +228,7 @@ class MapFragment : Fragment() {
             marker.snippet = "2h forecast: $forecast\n" +
                     "Valid: $validPeriod"
             //marker.showInfoWindow()
-            Log.d("MapFragment", "Marker for $locationName updated with forecast: $forecast and valid period: $validPeriod")
+            //Log.d("MapFragment", "Marker for $locationName updated with forecast: $forecast and valid period: $validPeriod")
         } else {
             Log.e("MapFragment", "Marker for $locationName not found")
         }
