@@ -35,6 +35,9 @@ class MapFragment : Fragment() {
     private lateinit var requestQueue: RequestQueue
     private val markers = mutableMapOf<String, Marker?>()
 
+    private var fishingHotspotsData: JSONArray? = null
+    private var weatherForecastResponse: JSONObject? = null
+
     private val callback = OnMapReadyCallback { map ->
         googleMap = map
 
@@ -57,7 +60,11 @@ class MapFragment : Fragment() {
         // Move the camera to a default location (Singapore coordinates)
         val singapore = LatLng(1.3521, 103.8198)
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(singapore, 10f))
-        fetchFishingHotspots()
+        if (fishingHotspotsData != null) {
+            addMarkersToMap(fishingHotspotsData!!)
+        } else {
+            fetchFishingHotspots()
+        }
     }
 
     override fun onCreateView(
@@ -74,15 +81,53 @@ class MapFragment : Fragment() {
         mapFragment?.getMapAsync(callback)
 
         requestQueue = Volley.newRequestQueue(requireContext())
+        preloadFishingHotspots()
+        preloadWeatherForecast()
+    }
+
+    private fun preloadFishingHotspots() {
+        val url = "http://10.0.2.2:8080/api/locations"
+        val request = JsonArrayRequest(
+            Request.Method.GET, url, null,
+            Response.Listener { response ->
+                Log.d("MapFragment", "Hotspots preloaded: ${response.length()} locations")
+                fishingHotspotsData = response
+            },
+            Response.ErrorListener { error ->
+                Log.e("MapFragment", "Error preloading hotspots: ${error.message}")
+            }
+        )
+        requestQueue.add(request)
+    }
+
+
+    private fun preloadWeatherForecast() {
+        val url = "https://api-open.data.gov.sg/v2/real-time/api/two-hr-forecast"
+        val request = JsonObjectRequest(
+            Request.Method.GET, url, null,
+            { response ->
+                Log.d("MapFragment", "Weather forecast preloaded")
+                weatherForecastResponse = response
+            },
+            { error ->
+                Log.e("MapFragment", "Error preloading weather forecast: ${error.message}")
+            }
+        )
+        requestQueue.add(request)
     }
 
     private fun fetchFishingHotspots() {
+        // If hotspots were not preloaded, fetch them.
+        if (fishingHotspotsData != null) {
+            addMarkersToMap(fishingHotspotsData!!)
+            return
+        }
         val url = "http://10.0.2.2:8080/api/locations"
-
         val request = JsonArrayRequest(
             Request.Method.GET, url, null,
             { response ->
                 Log.d("MapFragment", "Response received.")
+                fishingHotspotsData = response
                 addMarkersToMap(response)
             },
             { error ->
@@ -90,7 +135,6 @@ class MapFragment : Fragment() {
                 error.printStackTrace()
             }
         )
-
         requestQueue.add(request)
     }
 
@@ -121,22 +165,30 @@ class MapFragment : Fragment() {
     }
 
     private fun fetchWeatherForecast(locationName: String, position: LatLng) {
-        val url = "https://api-open.data.gov.sg/v2/real-time/api/two-hr-forecast"
-
-        val request = JsonObjectRequest(
-            Request.Method.GET, url, null,
-            { response ->
-                val forecast = parseWeatherForecast(response, position)
-                Log.d("MapFragment", "Forecast for $locationName updated to $forecast")
-                val validPeriod = parseValidPeriod(response)
-                updateMarkerWithWeather(position, locationName, forecast, validPeriod)
-            },
-            { error ->
-                Log.e("MapFragment", "Weather request error: ${error.message}")
-                error.printStackTrace()
-            }
-        )
-        requestQueue.add(request)
+        // Use the preloaded weather forecast if available.
+        if (weatherForecastResponse != null) {
+            val forecast = parseWeatherForecast(weatherForecastResponse!!, position)
+            Log.d("MapFragment", "Forecast for $locationName updated to $forecast")
+            val validPeriod = parseValidPeriod(weatherForecastResponse!!)
+            updateMarkerWithWeather(position, locationName, forecast, validPeriod)
+        } else {
+            // If not preloaded, make a request.
+            val url = "https://api-open.data.gov.sg/v2/real-time/api/two-hr-forecast"
+            val request = JsonObjectRequest(
+                Request.Method.GET, url, null,
+                Response.Listener { response ->
+                    val forecast = parseWeatherForecast(response, position)
+                    Log.d("MapFragment", "Forecast for $locationName updated to $forecast")
+                    val validPeriod = parseValidPeriod(response)
+                    updateMarkerWithWeather(position, locationName, forecast, validPeriod)
+                },
+                Response.ErrorListener { error ->
+                    Log.e("MapFragment", "Weather request error: ${error.message}")
+                    error.printStackTrace()
+                }
+            )
+            requestQueue.add(request)
+        }
     }
 
     private fun parseWeatherForecast(response: JSONObject, position: LatLng): String {

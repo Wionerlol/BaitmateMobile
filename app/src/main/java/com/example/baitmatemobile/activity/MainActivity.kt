@@ -14,22 +14,50 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
+    private val homeFragment = HomeFragment()
+    private val mapFragment = MapFragment()
+    private val cameraFragment = CameraFragment()
+    private val messagesFragment = MessagesFragment()
+    private val profileFragment = ProfileFragment()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.activity = this
 
-        replaceFragment(HomeFragment())
+        supportFragmentManager.beginTransaction()
+            .add(R.id.fragment_container, homeFragment, "home")
+            .commit()
+
+        supportFragmentManager.beginTransaction()
+            .add(R.id.fragment_container, mapFragment, "map")
+            .hide(mapFragment)
+            .commit()
+
+        supportFragmentManager.beginTransaction()
+            .add(R.id.fragment_container, cameraFragment, "camera")
+            .hide(cameraFragment)
+            .commit()
+
+        supportFragmentManager.beginTransaction()
+            .add(R.id.fragment_container, messagesFragment, "messages")
+            .hide(messagesFragment)
+            .commit()
+
+        supportFragmentManager.beginTransaction()
+            .add(R.id.fragment_container, profileFragment, "profile")
+            .hide(profileFragment)
+            .commit()
 
         // 绑定底部导航栏
         binding.bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_home -> replaceFragment(HomeFragment())  // ✅ 这里绑定 HomeFragment
-                R.id.nav_map -> replaceFragment(MapFragment())
-                R.id.nav_photograph -> replaceFragment(CameraFragment())
-                R.id.nav_messages -> replaceFragment(MessagesFragment())
-                R.id.nav_profile -> replaceFragment(ProfileFragment())
+                R.id.nav_home -> showFragment(homeFragment)
+                R.id.nav_map -> showFragment(mapFragment)
+                R.id.nav_photograph -> showFragment(cameraFragment)
+                R.id.nav_messages -> showFragment(messagesFragment)
+                R.id.nav_profile -> showFragment(profileFragment)
             }
             true
         }
@@ -41,9 +69,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     // 切换 Fragment
-    private fun replaceFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, fragment)
-            .commit()
+    private fun showFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction().apply {
+            // Hide all fragments.
+            hide(homeFragment)
+            hide(mapFragment)
+            hide(cameraFragment)
+            hide(messagesFragment)
+            hide(profileFragment)
+            // Show the selected fragment.
+            show(fragment)
+        }.commit()
     }
 }
