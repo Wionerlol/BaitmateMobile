@@ -176,13 +176,13 @@ class MapFragment : Fragment() {
             val url = "https://api-open.data.gov.sg/v2/real-time/api/two-hr-forecast"
             val request = JsonObjectRequest(
                 Request.Method.GET, url, null,
-                Response.Listener { response ->
+                { response ->
                     val forecast = parseWeatherForecast(response, position)
                     Log.d("MapFragment", "Forecast for $locationName updated to $forecast")
                     val validPeriod = parseValidPeriod(response)
                     updateMarkerWithWeather(position, locationName, forecast, validPeriod)
                 },
-                Response.ErrorListener { error ->
+                { error ->
                     Log.e("MapFragment", "Weather request error: ${error.message}")
                     error.printStackTrace()
                 }
