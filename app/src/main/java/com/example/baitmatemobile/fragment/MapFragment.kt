@@ -89,11 +89,11 @@ class MapFragment : Fragment() {
         val url = "http://10.0.2.2:8080/api/locations"
         val request = JsonArrayRequest(
             Request.Method.GET, url, null,
-            Response.Listener { response ->
+            { response ->
                 Log.d("MapFragment", "Hotspots preloaded: ${response.length()} locations")
                 fishingHotspotsData = response
             },
-            Response.ErrorListener { error ->
+            { error ->
                 Log.e("MapFragment", "Error preloading hotspots: ${error.message}")
             }
         )

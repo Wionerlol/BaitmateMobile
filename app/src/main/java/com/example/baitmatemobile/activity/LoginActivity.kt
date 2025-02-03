@@ -52,17 +52,21 @@ class LoginActivity : AppCompatActivity() {
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                 if (response.isSuccessful && response.body() != null) {
                     val loginResponse = response.body()
-                    val userId = loginResponse?.id
-                    val usernameResponse = loginResponse?.username
-
                     // Save login status to SharedPreferences
-                    saveLoginStatus(userId, usernameResponse)
-                    Toast.makeText(this@LoginActivity, "Login successful", Toast.LENGTH_SHORT).show()
+                    saveLoginStatus(loginResponse)
 
-                    val intent = Intent(this@LoginActivity, MainActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    startActivity(intent)
-                    finish()
+                    val userStatus = sharedPreferences.getString("status", "inactive")
+                    if (userStatus.equals("active", ignoreCase = true)) {
+                        Toast.makeText(this@LoginActivity, "Login successful", Toast.LENGTH_SHORT).show()
+
+                        val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        Toast.makeText(this@LoginActivity, "User account is not active", Toast.LENGTH_SHORT).show()
+                    }
+
                 } else {
                     Toast.makeText(this@LoginActivity, "Invalid username or password", Toast.LENGTH_SHORT).show()
                 }
@@ -74,13 +78,14 @@ class LoginActivity : AppCompatActivity() {
         })
     }
 
-    private fun saveLoginStatus(userId: Long?, username: String?) {
+    private fun saveLoginStatus(loginResponse: LoginResponse?) {
         val editor = sharedPreferences.edit()
         editor.putBoolean("isLoggedIn", true)
-        if (userId != null) {
-            editor.putLong("userId", userId)
+        if (loginResponse?.id != null) {
+            editor.putLong("userId", loginResponse?.id)
         }
-        editor.putString("username", username)
+        editor.putString("username", loginResponse?.username)
+        editor.putString("status", loginResponse?.userStatus)
         editor.apply()
     }
 
