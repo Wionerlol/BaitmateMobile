@@ -33,6 +33,7 @@ class LoginActivity : AppCompatActivity() {
         val usernameEditText = binding.username
         val passwordEditText = binding.password
         val loginButton = binding.btnLogin
+        val forgotPasswordTextView = binding.tvForgotPassword
 
         loginButton.setOnClickListener {
             val username = usernameEditText.text.toString().trim()
@@ -45,13 +46,21 @@ class LoginActivity : AppCompatActivity() {
 
             loginUser(username, password)
         }
+
+        forgotPasswordTextView.setOnClickListener {
+            val intent = Intent(this@LoginActivity, ForgotPasswordActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun loginUser(username: String, password: String) {
         val loginRequest = LoginRequest(username, password)
         RetrofitClient.instance.login(loginRequest).enqueue(object : Callback<LoginResponse> {
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
-
+                val loginResponse = response.body()
+                if (loginResponse?.errorMessage != null) {
+                    Toast.makeText(this@LoginActivity, loginResponse.errorMessage, Toast.LENGTH_SHORT).show()
+                }
                 if (response.isSuccessful && response.body() != null) {
                     val loginResponse = response.body()
                     if (loginResponse?.errorMessage != null) {

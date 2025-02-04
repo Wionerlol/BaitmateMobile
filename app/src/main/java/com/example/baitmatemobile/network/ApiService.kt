@@ -1,8 +1,10 @@
 package com.example.baitmatemobile.network
 
 
+import com.example.baitmatemobile.model.ForgotPasswordRequest
 import com.example.baitmatemobile.model.LoginRequest
 import com.example.baitmatemobile.model.LoginResponse
+import com.example.baitmatemobile.model.ResetPasswordRequest
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body
@@ -16,4 +18,10 @@ interface ApiService {
 
         @POST("/api/logout")
         fun logout(@Header("Authorization") token: String): Call<ResponseBody>
+
+        @POST("/api/forgot-password")
+        fun forgotPassword(@Body request: ForgotPasswordRequest): Call<ResponseBody>
+
+        @POST("/api/reset-password")
+        fun resetPassword(@Body request: ResetPasswordRequest): Call<ResponseBody>
 }
