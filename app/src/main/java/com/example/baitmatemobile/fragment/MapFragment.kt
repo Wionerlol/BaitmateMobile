@@ -11,11 +11,11 @@ import android.view.ViewGroup
 import android.widget.TextView
 import com.android.volley.Request
 import com.android.volley.RequestQueue
-import com.android.volley.Response
 import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.example.baitmatemobile.R
+import com.example.baitmatemobile.network.RetrofitClient
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -26,6 +26,9 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import org.json.JSONArray
 import org.json.JSONObject
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -122,6 +125,7 @@ class MapFragment : Fragment() {
             addMarkersToMap(fishingHotspotsData!!)
             return
         }
+
         val url = "http://10.0.2.2:8080/api/locations"
         val request = JsonArrayRequest(
             Request.Method.GET, url, null,

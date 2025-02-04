@@ -44,13 +44,21 @@
         android:text="Login" />
 
     <TextView
-    android:id="@+id/tvForgotPassword"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="Forgot Password?"
-    android:textColor="@android:color/holo_blue_dark"
-    android:clickable="true"
-    android:focusable="true"/>
+        android:id="@+id/tvForgotPassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:text="Forgot Password?"
+        android:textColor="@android:color/holo_blue_dark"
+        android:clickable="true"
+        android:focusable="true"/>
+
+    <Button
+        android:id="@+id/btnRegister"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@android:color/holo_blue_light"
+        android:text="Register new account" />
 
 
 </LinearLayout>

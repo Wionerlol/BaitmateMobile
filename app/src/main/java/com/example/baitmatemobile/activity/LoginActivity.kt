@@ -36,6 +36,7 @@ class LoginActivity : AppCompatActivity() {
         val passwordEditText = binding.password
         val loginButton = binding.btnLogin
         val forgotPasswordTextView = binding.tvForgotPassword
+        val registerButton = binding.btnRegister
 
         loginButton.setOnClickListener {
             val username = usernameEditText.text.toString().trim()
@@ -53,6 +54,11 @@ class LoginActivity : AppCompatActivity() {
             val intent = Intent(this@LoginActivity, ForgotPasswordActivity::class.java)
             startActivity(intent)
         }
+
+        registerButton.setOnClickListener{
+            val intent = Intent(this@LoginActivity, RegisterActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun loginUser(username: String, password: String) {
@@ -63,14 +69,14 @@ class LoginActivity : AppCompatActivity() {
 
                 if (response.isSuccessful && response.body() != null) {
                     val loginResponse = response.body()
-                        // Save login status to SharedPreferences
-                        saveLoginResponse(loginResponse)
-                        Toast.makeText(this@LoginActivity, "Login successful", Toast.LENGTH_SHORT).show()
+                    // Save login status to SharedPreferences
+                    saveLoginResponse(loginResponse)
+                    Toast.makeText(this@LoginActivity, "Login successful", Toast.LENGTH_SHORT).show()
 
-                        val intent = Intent(this@LoginActivity, MainActivity::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        startActivity(intent)
-                        finish()
+                    val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                    finish()
 
                 } else {
                     val errorBody = response.errorBody()?.string()

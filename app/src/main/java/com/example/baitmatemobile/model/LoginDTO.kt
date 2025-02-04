@@ -26,3 +26,13 @@ data class ResetPasswordRequest(
     val otp: String,
     val newPassword: String
 )
+
+data class RegisterRequest(
+    val username: String,
+    val password: String,
+    val phoneNumber: String?,
+    val email: String,
+    val age: Int,
+    val gender: String?, // Optional
+    val address: String? // Optional
+)
