@@ -12,9 +12,11 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContentProviderCompat.requireContext
 import com.example.baitmatemobile.databinding.ActivityLoginBinding
+import com.example.baitmatemobile.model.ErrorResponse
 import com.example.baitmatemobile.model.LoginRequest
 import com.example.baitmatemobile.model.LoginResponse
 import com.example.baitmatemobile.network.RetrofitClient
+import com.google.gson.Gson
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -57,15 +59,10 @@ class LoginActivity : AppCompatActivity() {
         val loginRequest = LoginRequest(username, password)
         RetrofitClient.instance.login(loginRequest).enqueue(object : Callback<LoginResponse> {
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
-                val loginResponse = response.body()
-                if (loginResponse?.errorMessage != null) {
-                    Toast.makeText(this@LoginActivity, loginResponse.errorMessage, Toast.LENGTH_SHORT).show()
-                }
+                Log.d("LoginActivity", "Response body: ${response.body()}")
+
                 if (response.isSuccessful && response.body() != null) {
                     val loginResponse = response.body()
-                    if (loginResponse?.errorMessage != null) {
-                        Toast.makeText(this@LoginActivity, loginResponse.errorMessage, Toast.LENGTH_SHORT).show()
-                    } else {
                         // Save login status to SharedPreferences
                         saveLoginResponse(loginResponse)
                         Toast.makeText(this@LoginActivity, "Login successful", Toast.LENGTH_SHORT).show()
@@ -74,13 +71,19 @@ class LoginActivity : AppCompatActivity() {
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)
                         finish()
-                    }
+
                 } else {
-                    Toast.makeText(this@LoginActivity, "Login failed", Toast.LENGTH_SHORT).show()
+                    val errorBody = response.errorBody()?.string()
+                    val gson = Gson()
+                    val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
+                    val errorMessage = errorResponse.errorMessage
+                    Log.d("LoginActivity", "$errorBody")
+                    Toast.makeText(this@LoginActivity, "Login failed: $errorMessage", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                Log.e("LoginActivity", "${t.message}")
                 Toast.makeText(this@LoginActivity, "Login failed: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
@@ -89,9 +92,8 @@ class LoginActivity : AppCompatActivity() {
     private fun saveLoginResponse(loginResponse: LoginResponse?) {
         Log.d("LoginActivity", "Saving login response: $loginResponse")
         val editor = sharedPreferences.edit()
-        loginResponse?.user?.id?.let { editor.putLong("userId", it) }
+        loginResponse?.userId?.let { editor.putLong("userId", it) }
         editor.putString("auth_token", loginResponse?.token)
-        editor.putString("username", loginResponse?.user?.username)
         editor.apply()
     }
 
