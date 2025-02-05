@@ -4,6 +4,7 @@ package com.example.baitmatemobile.network
 import com.example.baitmatemobile.model.ForgotPasswordRequest
 import com.example.baitmatemobile.model.LoginRequest
 import com.example.baitmatemobile.model.LoginResponse
+import com.example.baitmatemobile.model.Post
 import com.example.baitmatemobile.model.RegisterRequest
 import com.example.baitmatemobile.model.ResetPasswordRequest
 import okhttp3.ResponseBody
@@ -14,27 +15,48 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
-        @GET("/api/locations")
+        @GET("locations")
         fun getFishingLocations(): Call<JSONArray>
 
-        @POST("/api/login")
+        @POST("login")
         fun login(@Body request: LoginRequest): Call<LoginResponse>
 
-        @POST("/api/logout")
+        @POST("logout")
         fun logout(@Header("Authorization") token: String): Call<ResponseBody>
 
-        @POST("/api/forgot-password")
+        @POST("forgot-password")
         fun forgotPassword(@Body request: ForgotPasswordRequest): Call<ResponseBody>
 
-        @POST("/api/reset-password")
+        @POST("reset-password")
         fun resetPassword(@Body request: ResetPasswordRequest): Call<ResponseBody>
 
-        @GET("/api/validate-token")
+        @GET("validate-token")
         fun validateToken(@Query("token") token: String): Call<Map<String, String>>
 
-        @POST("/api/register")
+        @POST("register")
         fun register(@Body request: RegisterRequest): Call<ResponseBody>
+
+        // 获取所有 Post
+        @GET("posts")
+        suspend fun getAllPosts(): List<Post>
+
+        // 获取单个 Post
+        @GET("posts/{id}")
+        suspend fun getPostById(@Path("id") id: Long): Post
+
+        // 创建 Post
+        @POST("posts")
+        suspend fun createPost(@Body post: Post): Post
+
+        // 更新喜爱状态
+        @PUT("posts/{postId}/like")
+        suspend fun toggleLike(
+                @Path("postId") postId: Long,
+                @Query("userId") userId: Long
+        ): Post
 }

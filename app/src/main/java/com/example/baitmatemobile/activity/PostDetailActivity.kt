@@ -13,8 +13,8 @@ import androidx.viewpager2.widget.ViewPager2
 import com.example.baitmatemobile.R
 import com.example.baitmatemobile.adapter.CommentAdapter
 import com.example.baitmatemobile.adapter.ImagePagerAdapter
-import com.example.baitmatemobile.api.ApiClient
 import com.example.baitmatemobile.model.Post
+import com.example.baitmatemobile.network.RetrofitClient
 import kotlinx.coroutines.launch
 
 class PostDetailActivity : AppCompatActivity() {
@@ -65,7 +65,7 @@ class PostDetailActivity : AppCompatActivity() {
     private fun loadPostDetails(id: Long) {
         lifecycleScope.launch {
             try {
-                val fetchedPost = ApiClient.apiService.getPostById(id)
+                val fetchedPost = RetrofitClient.instance.getPostById(id)
                 post = fetchedPost
                 bindPostData(fetchedPost)
             } catch (e: Exception) {

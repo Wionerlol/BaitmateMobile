@@ -16,8 +16,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.baitmatemobile.R
-import com.example.baitmatemobile.api.ApiClient
 import com.example.baitmatemobile.model.Post
+import com.example.baitmatemobile.network.RetrofitClient
 import kotlinx.coroutines.launch
 
 class PostAdapter(
@@ -83,7 +83,7 @@ class PostAdapter(
                 // 发起异步请求，调用 toggleLike
                 itemView.context.lifecycleOwner()?.lifecycleScope?.launch {
                     try {
-                        val updatedPost = ApiClient.apiService.toggleLike(
+                        val updatedPost = RetrofitClient.instance.toggleLike(
                             postId = post.id ?: return@launch,
                             userId = userId
                         )

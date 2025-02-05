@@ -15,8 +15,8 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.baitmatemobile.R
 import com.example.baitmatemobile.activity.PostDetailActivity
 import com.example.baitmatemobile.adapter.PostAdapter
-import com.example.baitmatemobile.api.ApiClient
 import com.example.baitmatemobile.databinding.FragmentDiscoverBinding
+import com.example.baitmatemobile.network.RetrofitClient
 import kotlinx.coroutines.launch
 
 class DiscoverFragment : Fragment() {
@@ -61,7 +61,7 @@ class DiscoverFragment : Fragment() {
     private fun loadPosts() {
         lifecycleScope.launch {
             try {
-                val posts = ApiClient.apiService.getAllPosts()
+                val posts = RetrofitClient.instance.getAllPosts()
                 postAdapter.submitList(posts)
             } catch (e: Exception) {
                 //e.printStackTrace()
