@@ -5,8 +5,11 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.baitmatemobile.databinding.ActivityRegisterBinding
+import com.example.baitmatemobile.model.ErrorResponse
 import com.example.baitmatemobile.model.RegisterRequest
 import com.example.baitmatemobile.network.RetrofitClient
+import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -65,9 +68,8 @@ class RegisterActivity : AppCompatActivity() {
                     Toast.makeText(this@RegisterActivity, "Registration successful!", Toast.LENGTH_SHORT).show()
                     finish()
                 } else {
-                    val errorMessage = response.errorBody()?.string() ?: "An error occurred"
-                    Log.e("RegisterActivity", "$errorMessage")
-                    Toast.makeText(this@RegisterActivity, errorMessage, Toast.LENGTH_LONG).show()
+                    val errorBody = response.errorBody()?.string() ?: "An error occurred"
+                    Toast.makeText(this@RegisterActivity, errorBody, Toast.LENGTH_LONG).show()
                 }
             }
 

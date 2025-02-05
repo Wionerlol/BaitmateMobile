@@ -9,9 +9,11 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.baitmatemobile.R
 import com.example.baitmatemobile.databinding.ActivityForgotPasswordBinding
+import com.example.baitmatemobile.model.ErrorResponse
 import com.example.baitmatemobile.model.ForgotPasswordRequest
 import com.example.baitmatemobile.model.ResetPasswordRequest
 import com.example.baitmatemobile.network.RetrofitClient
+import com.google.gson.Gson
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -58,7 +60,11 @@ class ForgotPasswordActivity : AppCompatActivity() {
                     Toast.makeText(this@ForgotPasswordActivity, "Check your email for reset instructions", Toast.LENGTH_SHORT).show()
                     binding.otpLayout.visibility = View.VISIBLE
                 } else {
-                    Toast.makeText(this@ForgotPasswordActivity, "Failed to send OTP", Toast.LENGTH_SHORT).show()
+                    val errorBody = response.errorBody()?.string()
+                    //val gson = Gson()
+                    //val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
+                    //val errorMessage = errorResponse.errorMessage
+                    Toast.makeText(this@ForgotPasswordActivity, "Error: $errorBody", Toast.LENGTH_SHORT).show()
                 }
             }
 

@@ -7,7 +7,7 @@ data class LoginRequest(
     val password: String
 )
 data class ErrorResponse(
-    val errorMessage: String
+    val errorMessage: Any
 )
 
 data class LoginResponse(
