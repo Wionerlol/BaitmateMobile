@@ -1,7 +1,9 @@
 package com.example.baitmatemobile.adapter
 
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.content.ContextWrapper
+import android.content.SharedPreferences
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,13 +21,14 @@ import com.example.baitmatemobile.model.Post
 import kotlinx.coroutines.launch
 
 class PostAdapter(
+    private val userId: Long,
     private val onItemClick: (Post) -> Unit
 ) : ListAdapter<Post, PostAdapter.PostViewHolder>(DiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_post_staggered, parent, false)
-        return PostViewHolder(view, onItemClick)
+        return PostViewHolder(userId, view, onItemClick)
     }
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
@@ -33,9 +36,12 @@ class PostAdapter(
     }
 
     class PostViewHolder(
+        private val userId: Long,
         itemView: View,
         private val onItemClick: (Post) -> Unit
     ) : RecyclerView.ViewHolder(itemView) {
+
+        private lateinit var sharedPrefs: SharedPreferences
 
         private val ivPostImage: ImageView = itemView.findViewById(R.id.ivPostImage)
         private val tvTitle: TextView = itemView.findViewById(R.id.tvTitle)
@@ -73,8 +79,6 @@ class PostAdapter(
 
             // 处理“点赞”按钮
             ivLike.setOnClickListener {
-                // ❗ 需从全局或 session 拿到 userId，这里示例写死
-                val userId: Long = 1  // TODO: 替换为实际用户ID
 
                 // 发起异步请求，调用 toggleLike
                 itemView.context.lifecycleOwner()?.lifecycleScope?.launch {

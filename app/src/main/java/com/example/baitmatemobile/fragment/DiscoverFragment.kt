@@ -1,5 +1,8 @@
 package com.example.baitmatemobile.fragment
+import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -34,12 +37,14 @@ class DiscoverFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        initRecyclerView()
+        val sharedPrefs = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val userId = sharedPrefs.getLong("userId", -1)
+        initRecyclerView(userId)
         loadPosts()
     }
 
-    private fun initRecyclerView() {
-        postAdapter = PostAdapter { clickedPost ->
+    private fun initRecyclerView(userId: Long) {
+        postAdapter = PostAdapter(userId) { clickedPost ->
             // 点击图片或者整块区域进入详情
             val intent = Intent(requireContext(), PostDetailActivity::class.java)
             intent.putExtra("postId", clickedPost.id)
