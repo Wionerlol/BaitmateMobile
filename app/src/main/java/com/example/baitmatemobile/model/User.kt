@@ -17,5 +17,3 @@ data class User(
     // 如果后端直接返回 byte[]
     val profileImage: ByteArray?
 )
-
-
