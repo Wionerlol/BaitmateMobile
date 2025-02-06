@@ -1,6 +1,7 @@
 package com.example.baitmatemobile.network
 
 
+import com.example.baitmatemobile.model.CatchRecord
 import com.example.baitmatemobile.model.ForgotPasswordRequest
 import com.example.baitmatemobile.model.LoginRequest
 import com.example.baitmatemobile.model.LoginResponse
@@ -25,6 +26,10 @@ interface ApiService {
 
         @POST("login")
         fun login(@Body request: LoginRequest): Call<LoginResponse>
+
+        @POST("/api/catch-records/add")
+        fun saveCatchRecord(@Body catchRecord: CatchRecord): Call<Void>
+
 
         @POST("logout")
         fun logout(@Header("Authorization") token: String): Call<ResponseBody>
