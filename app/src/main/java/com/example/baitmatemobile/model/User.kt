@@ -1,7 +1,5 @@
 package com.example.baitmatemobile.model
 
-import java.time.LocalDate
-
 data class User(
     val id: Long?,
     val username: String?,
@@ -10,10 +8,11 @@ data class User(
     val age: Int?,
     val gender: String?,
     val address: String?,
-    // 后端 LocalDate => 前端 String
     val joinDate: String?,
     val userStatus: String?,
 
-    // 如果后端直接返回 byte[]
+    val followingCount: Int? = 0,
+    val followersCount: Int? = 0,
+
     val profileImage: ByteArray?
 )
