@@ -1,6 +1,8 @@
 package com.example.baitmatemobile.network
 
 
+import com.example.baitmatemobile.model.CatchRecord
+import com.example.baitmatemobile.model.FishingLocation
 import com.example.baitmatemobile.model.ForgotPasswordRequest
 import com.example.baitmatemobile.model.LoginRequest
 import com.example.baitmatemobile.model.LoginResponse
@@ -23,8 +25,28 @@ interface ApiService {
         @GET("locations")
         fun getFishingLocations(): Call<JSONArray>
 
+        @GET("locations/{id}")
+        suspend fun getFishingSpotById(@Path("id") id: Long): FishingLocation
+
+        @GET("locations/search")
+        suspend fun searchFishingSpots(@Query("query") query: String): List<FishingLocation>
+
+        @GET("locations/nearby")
+        suspend fun getNearbyFishingSpots(
+                @Query("latitude") latitude: Double,
+                @Query("longitude") longitude: Double,
+                @Query("radius") radius: Double = 5.0
+        ): List<FishingLocation>
+
+        @GET("locations/suggestions")
+        suspend fun getSearchSuggestions(@Query("query") query: String): List<String>
+
         @POST("login")
         fun login(@Body request: LoginRequest): Call<LoginResponse>
+
+        @POST("/api/catch-records/add")
+        fun saveCatchRecord(@Body catchRecord: CatchRecord): Call<Void>
+
 
         @POST("logout")
         fun logout(@Header("Authorization") token: String): Call<ResponseBody>

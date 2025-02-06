@@ -1,6 +1,7 @@
 package com.example.baitmatemobile.fragment
 
 import android.content.Context
+import android.graphics.Camera
 import androidx.fragment.app.Fragment
 
 import android.os.Bundle
@@ -8,22 +9,30 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
+import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.example.baitmatemobile.R
+import com.example.baitmatemobile.model.FishingLocation
 import com.example.baitmatemobile.network.RetrofitClient
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import retrofit2.Call
@@ -34,12 +43,20 @@ import kotlin.math.sqrt
 
 class MapFragment : Fragment() {
 
-    private lateinit var googleMap: GoogleMap
     private lateinit var requestQueue: RequestQueue
     private val markers = mutableMapOf<String, Marker?>()
 
     private var fishingHotspotsData: JSONArray? = null
+    private var nearbyFishingSpots: JSONArray? = null
     private var weatherForecastResponse: JSONObject? = null
+
+    private lateinit var map: SupportMapFragment
+    private lateinit var googleMap: GoogleMap
+    private lateinit var searchBox: AutoCompleteTextView
+    private lateinit var btnSearch: Button
+    private lateinit var btnMarkFishing: Button
+    private lateinit var btnShowHotspots: Button
+    private lateinit var searchAdapter: ArrayAdapter<String>
 
     private val callback = OnMapReadyCallback { map ->
         googleMap = map
@@ -75,17 +92,25 @@ class MapFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_map, container, false)
+        val rootView = inflater.inflate(R.layout.fragment_map, container, false)
+
+        map = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        searchBox = rootView.findViewById(R.id.et_search)
+        btnSearch = rootView.findViewById(R.id.btn_search)
+        btnMarkFishing = rootView.findViewById(R.id.btn_mark_fishing)
+        btnShowHotspots = rootView.findViewById(R.id.btn_show_hotspots)
+
+        return rootView
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
-        mapFragment?.getMapAsync(callback)
+        map.getMapAsync(callback)
 
         requestQueue = Volley.newRequestQueue(requireContext())
         preloadFishingHotspots()
         preloadWeatherForecast()
+        setButtonListeners()
     }
 
     private fun preloadFishingHotspots() {
@@ -235,6 +260,74 @@ class MapFragment : Fragment() {
             //Log.d("MapFragment", "Marker for $locationName updated with forecast: $forecast and valid period: $validPeriod")
         } else {
             Log.e("MapFragment", "Marker for $locationName not found")
+        }
+    }
+
+    private fun setButtonListeners() {
+        btnSearch.setOnClickListener{
+            val query = searchBox.text.toString().trim()
+            searchLocation(query)
+        }
+
+        btnMarkFishing.setOnClickListener{
+            fishingHotspotsData?.let { it1 -> addMarkersToMap(it1) }
+        }
+
+        btnShowHotspots.setOnClickListener{
+
+        }
+    }
+
+    private fun searchLocation(query: String) {
+        if(query.isBlank()) {
+            Toast.makeText(requireContext(), "Please enter location to search", Toast.LENGTH_SHORT).show()
+        }
+
+        lifecycleScope.launch {
+            try {
+                val fishingSpots = RetrofitClient.instance.searchFishingSpots(query)
+                if (fishingSpots.isNotEmpty()) {
+                    val firstSpot = fishingSpots[0]
+                    googleMap.moveCamera(
+                        CameraUpdateFactory.newLatLngZoom(LatLng(firstSpot.latitude, firstSpot.longitude), 12f)
+                    )
+
+                    fetchNearbyFishingSpots(firstSpot.latitude, firstSpot.longitude)
+                } else {
+                    Toast.makeText(requireContext(), "Could not find nearby spots for $query", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun fetchNearbyFishingSpots(latitude: Double, longtitude: Double) {
+        lifecycleScope.launch {
+            try {
+                val nearbySpots = RetrofitClient.instance.getNearbyFishingSpots(latitude, longtitude, 2.0)
+
+                displayFishingSpotsOnMap(nearbySpots)
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Unable to fetch: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun displayFishingSpotsOnMap(nearbySpots: List<FishingLocation>) {
+        val nearbySpotNames = nearbySpots.map { it.locationName }.toSet()
+        for ((spotName, marker) in markers) {
+            if (spotName in nearbySpotNames) {
+                marker?.isVisible = true
+            } else {
+                marker?.isVisible = false
+            }
+        }
+
+        if (nearbySpots.isNotEmpty()) {
+            val firstSpot = nearbySpots.first()
+            val position = LatLng(firstSpot.latitude, firstSpot.longitude)
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 12f))
         }
     }
 

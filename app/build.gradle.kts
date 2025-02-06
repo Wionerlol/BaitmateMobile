@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     kotlin("kapt")
+    id("kotlin-parcelize")
     alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin)
 }
 
@@ -73,9 +74,15 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0") // Gson 转换器
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0") // Gson converter
+    implementation("com.google.code.gson:gson:2.8.9") // Gson library
+    implementation("org.postgresql:postgresql:42.6.0") // PostgreSQL driver
+    implementation("com.google.android.gms:play-services-maps:18.1.0") // Google Maps
+    implementation("com.google.android.gms:play-services-location:21.0.1") // Location services
+    implementation("com.google.maps.android:android-maps-utils:2.4.0") // Maps utilities
+    implementation("com.google.firebase:firebase-inappmessaging-display:20.2.0") // Firebase In-App Messaging
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
-    kapt("com.github.bumptech.glide:compiler:4.16.0") // 如果使用 Kotlin 需要 kapt
+    kapt("com.github.bumptech.glide:compiler:4.16.0") // Glide compiler for Kotlin
 
 }
