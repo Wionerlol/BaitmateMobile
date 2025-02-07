@@ -185,7 +185,7 @@ class ProfileFragment : Fragment() {
             return
         }
 
-        RetrofitClient.instance.logout("Bearer $token").enqueue(object : Callback<ResponseBody> {
+        RetrofitClient.instance.logout("$token").enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
                     val editor = sharedPreferences.edit()
