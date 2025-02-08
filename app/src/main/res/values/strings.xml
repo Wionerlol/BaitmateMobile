@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">BaitmateMobile</string>
+    <string name="select_location">Select Fishing Location</string>
+    <string name="weight">Weight (kg)</string>
+    <string name="length">Length (cm)</string>
+    <string name="remark">Remark</string>
+    <string name="submit">Submit</string>
 </resources>
