@@ -96,11 +96,13 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun saveLoginResponse(loginResponse: LoginResponse?) {
-        Log.d("LoginActivity", "Saving login response: $loginResponse")
-        val editor = sharedPreferences.edit()
-        loginResponse?.userId?.let { editor.putLong("userId", it) }
-        editor.putString("auth_token", loginResponse?.token)
-        editor.apply()
+        Thread {
+            Log.d("LoginActivity", "Saving login response: $loginResponse")
+            val editor = sharedPreferences.edit()
+            loginResponse?.userId?.let { editor.putLong("userId", it) }
+            editor.putString("auth_token", loginResponse?.token)
+            editor.apply()
+        }.start()
     }
 
     override fun onDestroy() {
