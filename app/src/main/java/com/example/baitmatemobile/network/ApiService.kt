@@ -1,7 +1,8 @@
 package com.example.baitmatemobile.network
 
 
-import com.example.baitmatemobile.model.CatchRecord
+import com.example.baitmatemobile.activity.CatchDetailActivity
+import com.example.baitmatemobile.model.CatchRecordDTO
 import com.example.baitmatemobile.model.FishingLocation
 import com.example.baitmatemobile.model.ForgotPasswordRequest
 import com.example.baitmatemobile.model.LoginRequest
@@ -10,6 +11,7 @@ import com.example.baitmatemobile.model.Post
 import com.example.baitmatemobile.model.RegisterRequest
 import com.example.baitmatemobile.model.ResetPasswordRequest
 import com.example.baitmatemobile.model.User
+import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import org.json.JSONArray
 import retrofit2.Call
@@ -17,8 +19,10 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 interface ApiService {
@@ -45,7 +49,7 @@ interface ApiService {
         fun login(@Body request: LoginRequest): Call<LoginResponse>
 
         @POST("/api/catch-records/add")
-        fun saveCatchRecord(@Body catchRecord: CatchRecord): Call<Void>
+        fun saveCatchRecord(@Body catchRecord: CatchRecordDTO): Call<Void>
 
 
         @POST("logout")
@@ -126,4 +130,16 @@ interface ApiService {
 
         @POST("user/{targetUserId}/unfollow")
         fun unfollowUser(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<ResponseBody>
+
+        @Multipart
+        @POST("http://10.0.2.2:5000/api/image/predict")
+        suspend fun uploadImage(
+                @Part image: MultipartBody.Part
+        ): Response<List<List<String>>>
+
+        @GET("locations")
+        suspend fun getLocations(): Response<List<CatchDetailActivity.LocationDTO>>
+
+        @POST("catch-records/add")
+        suspend fun addCatchRecord(@Body record: CatchRecordDTO): Response<Unit>
 }

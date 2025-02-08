@@ -6,6 +6,8 @@
     <color name="gray">#D3D3D3</color>
     <color name="accent">#FFC107</color> <!-- 黄色，用于强调色 -->
 
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryLight">#C5CAE9</color>
     <color name="blue_primary">#4CAF50</color> <!-- 绿色（钓鱼主题） -->
     <color name="blue_primary_variant">#388E3C</color> <!-- 深绿色 -->
     <color name="text_default">#757575</color> <!-- 默认文字颜色 -->

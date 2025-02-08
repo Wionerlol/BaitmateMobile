@@ -1,6 +1,6 @@
 package com.example.baitmatemobile.model
 
-data class CatchRecord(
+data class CatchRecordDTO(
     val time: String,
     val image: ByteArray,
     val length: Double,
