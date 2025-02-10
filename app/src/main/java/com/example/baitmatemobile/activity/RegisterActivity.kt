@@ -5,19 +5,15 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.baitmatemobile.databinding.ActivityRegisterBinding
-import com.example.baitmatemobile.model.ErrorResponse
 import com.example.baitmatemobile.model.RegisterRequest
 import com.example.baitmatemobile.network.RetrofitClient
-import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
 
 class RegisterActivity : AppCompatActivity() {
-    private var _binding: ActivityRegisterBinding? =null
+    private var _binding: ActivityRegisterBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,7 +21,7 @@ class RegisterActivity : AppCompatActivity() {
         _binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.btnRegister.setOnClickListener{
+        binding.btnRegister.setOnClickListener {
             registerUser()
         }
     }
@@ -60,20 +56,25 @@ class RegisterActivity : AppCompatActivity() {
 
         val age = ageString.toInt()
         val registerRequest = RegisterRequest(username, password, phoneNumber, email, age, gender, address)
-        Log.e("RegisterActivity", registerRequest.username)
 
-        RetrofitClient.instance.register(registerRequest).enqueue(object: Callback<ResponseBody>{
+        // ✅ 发送请求前记录请求参数
+        Log.d("RegisterActivity", "Sending Register Request: $registerRequest")
+
+        RetrofitClient.instance.register(registerRequest).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                if(response.isSuccessful) {
+                if (response.isSuccessful) {
+                    Log.d("RegisterActivity", "Response Success: ${response.body()?.string()}")
                     Toast.makeText(this@RegisterActivity, "Registration successful!", Toast.LENGTH_SHORT).show()
                     finish()
                 } else {
                     val errorBody = response.errorBody()?.string() ?: "An error occurred"
-                    Toast.makeText(this@RegisterActivity, errorBody, Toast.LENGTH_LONG).show()
+                    Log.e("RegisterActivity", "Error Response Code: ${response.code()}, Body: $errorBody")
+                    Toast.makeText(this@RegisterActivity, "Error: $errorBody", Toast.LENGTH_LONG).show()
                 }
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                Log.e("RegisterActivity", "Network Failure: ${t.message}")
                 Toast.makeText(this@RegisterActivity, "Failed to connect to server", Toast.LENGTH_SHORT).show()
             }
         })
