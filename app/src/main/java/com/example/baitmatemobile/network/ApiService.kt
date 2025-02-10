@@ -38,6 +38,9 @@ interface ApiService {
         @POST("saved-locations/save")
         fun saveLocation(@Query("userId") userId: Long, @Query("locationId") locationId: Long): Call<ResponseBody>
 
+        @POST("saved-locations/remove")
+        fun removeLocation(@Query("userId") userId: Long, @Query("locationId") locationId: Long): Call<ResponseBody>
+
         @GET("locations/{id}")
         suspend fun getFishingSpotById(@Path("id") id: Long): FishingLocation
 

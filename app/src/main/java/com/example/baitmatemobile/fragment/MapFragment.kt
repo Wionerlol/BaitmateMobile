@@ -19,6 +19,7 @@ import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.android.volley.Request
 import com.android.volley.RequestQueue
@@ -39,6 +40,7 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.gson.JsonArray
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
 import org.json.JSONArray
@@ -127,55 +129,97 @@ class MapFragment : Fragment() {
         setButtonListeners()
     }
 
+    private fun setButtonListeners() {
+        btnSearch.setOnClickListener{
+            val query = searchBox.text.toString().trim()
+            searchLocation(query)
+        }
+        btnMarkFishing.setOnClickListener{
+            fishingHotspotsData?.let { it1 -> addMarkersToMap(it1) }
+        }
+        btnShowHotspots.setOnClickListener{
+            fetchSavedSpots(userId)
+        }
+    }
+
     private fun showBottomSheetDialog(marker: Marker) {
-        // Create BottomSheetDialog
         val bottomSheetDialog = BottomSheetDialog(requireContext())
 
-        // Inflate custom layout
         val view = layoutInflater.inflate(R.layout.bottom_sheet_layout, null)
         bottomSheetDialog.setContentView(view)
 
-        // Access views in the layout
         val titleTextView = view.findViewById<TextView>(R.id.title)
         val snippetTextView = view.findViewById<TextView>(R.id.snippet)
         val saveButton = view.findViewById<Button>(R.id.save_button)
 
-        // Set marker data to the views
         titleTextView.text = marker.title
         snippetTextView.text = marker.snippet
 
-        // Handle "Save" button click
-        saveButton.setOnClickListener {
-            val locationId = markers.entries.find { it.value == marker }?.key ?: -1L
-            if (locationId != -1L) {
-                saveLocation(locationId)
-            } else {
-                Toast.makeText(requireContext(), "Error: Unable to find location ID", Toast.LENGTH_SHORT).show()
+        val locationId = markers.entries.find { it.value == marker }?.key ?: -1L
+        if (locationId != -1L) {
+            Log.d("MapFragment", "Checking if user $userId has saved location $locationId")
+            val isLocationSaved = checkSavedLocations(locationId) { isSaved ->
+                if (isSaved) {
+                    saveButton.text = "Saved"
+                    saveButton.setBackgroundColor(Color.parseColor("#9E9E9E"))
+                } else {
+                    saveButton.text = "Save"
+                    saveButton.setBackgroundColor(Color.parseColor("#4CAF50"))
+                }
             }
         }
-
-        // Show the dialog
+        saveButton.setOnClickListener {
+            if (saveButton.text == "Saved") {
+                removeLocation(locationId)
+                bottomSheetDialog.dismiss()
+            } else {
+                saveLocation(locationId)
+                bottomSheetDialog.dismiss()
+            }
+        }
         bottomSheetDialog.show()
     }
 
+    private fun checkSavedLocations(locationId: Long, callback: (Boolean) -> Unit) {
+        lifecycleScope.launch {
+            val savedLocations: List<FishingLocation>? = RetrofitClient.instance.getSavedLocations(userId)
+            val isSaved = savedLocations?.any { it.id == locationId } ?: false
+            callback(isSaved)
+        }
+    }
+
     private fun saveLocation(locationId: Long) {
-        Log.d("MapFragment", "Attempting to save location for $userId")
-
-
         RetrofitClient.instance.saveLocation(userId, locationId).enqueue(object: Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                Log.d("MapFragment", "Response code: ${response.code()}")
-                Log.d("MapFragment", "Response body: ${response.body()}")
                 if (response.isSuccessful) {
-                    Toast.makeText(requireContext(), "Locations saved successfully!", Toast.LENGTH_SHORT).show()
-                    //updateSaveButtonColor(locationId, true)
+                    Toast.makeText(requireContext(), "Location saved successfully!", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(requireContext(), "Failed to save location.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Failed to save location. ${response.errorBody()}", Toast.LENGTH_SHORT).show()
                 }
             }
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 Log.e("MapFragment", "Failed to save location. Error: ${t.message}")
                 Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun removeLocation(locationId: Long) {
+        RetrofitClient.instance.removeLocation(userId, locationId).enqueue(object: Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                if (response.isSuccessful) {
+                    Toast.makeText(requireContext(), "Location removed from saved spots!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        "Failed to remove location. ${response.errorBody()}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                Log.e("MapFragment", "Failed to remove location. Error: ${t.message}")
+                Toast.makeText(requireContext(), "Error", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -187,7 +231,6 @@ class MapFragment : Fragment() {
             fetchFishingHotspots()
         }
     }
-
 
     private fun preloadWeatherForecast() {
         val url = "https://api-open.data.gov.sg/v2/real-time/api/two-hr-forecast"
@@ -233,7 +276,6 @@ class MapFragment : Fragment() {
             }
         })
     }
-
 
     private fun addMarkersToMap(locations: List<FishingLocation>) {
         if (locations.isNotEmpty()) {
@@ -296,25 +338,8 @@ class MapFragment : Fragment() {
         if (marker!=null) {
             marker.snippet = "2h forecast: $forecast\n" +
                     "Valid: $validPeriod"
-            //marker.showInfoWindow()
-            //Log.d("MapFragment", "Marker for $locationName updated with forecast: $forecast and valid period: $validPeriod")
         } else {
             Log.e("MapFragment", "Marker for $locationName not found")
-        }
-    }
-
-    private fun setButtonListeners() {
-        btnSearch.setOnClickListener{
-            val query = searchBox.text.toString().trim()
-            searchLocation(query)
-        }
-
-        btnMarkFishing.setOnClickListener{
-            fishingHotspotsData?.let { it1 -> addMarkersToMap(it1) }
-        }
-
-        btnShowHotspots.setOnClickListener{
-            fetchSavedSpots(userId)
         }
     }
 
@@ -331,7 +356,6 @@ class MapFragment : Fragment() {
                     googleMap.moveCamera(
                         CameraUpdateFactory.newLatLngZoom(LatLng(firstSpot.latitude, firstSpot.longitude), 12f)
                     )
-
                     fetchNearbyFishingSpots(firstSpot.latitude, firstSpot.longitude)
                 } else {
                     Toast.makeText(requireContext(), "Could not find nearby spots for $query", Toast.LENGTH_SHORT).show()
@@ -374,5 +398,4 @@ class MapFragment : Fragment() {
             }
         }
     }
-
 }
