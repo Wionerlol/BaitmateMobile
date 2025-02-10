@@ -1,21 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Used in MapFragment for marker info window-->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="10dp">
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:gravity="center_vertical">
 
-    <TextView
-        android:id="@+id/info_window_title"
+    <!-- Content on the left (Title and Snippet) -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:paddingBottom="4dp" />
+
+        <TextView
+            android:id="@+id/snippet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="4dp" />
+    </LinearLayout>
+
+    <!-- Save Button on the right -->
+    <Button
+        android:id="@+id/save_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textStyle="bold"
-        android:textSize="16sp" />
-
-    <TextView
-        android:id="@+id/info_window_snippet"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="14sp" />
+        android:text="Save"
+        android:layout_gravity="end" />
 </LinearLayout>

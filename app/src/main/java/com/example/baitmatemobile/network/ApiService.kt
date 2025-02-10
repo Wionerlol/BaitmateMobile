@@ -11,6 +11,7 @@ import com.example.baitmatemobile.model.Post
 import com.example.baitmatemobile.model.RegisterRequest
 import com.example.baitmatemobile.model.ResetPasswordRequest
 import com.example.baitmatemobile.model.User
+import com.google.android.gms.common.internal.safeparcel.SafeParcelable
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import org.json.JSONArray
@@ -27,7 +28,13 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 interface ApiService {
         @GET("locations")
-        fun getFishingLocations(): Call<JSONArray>
+        fun getFishingLocations(): Call<List<FishingLocation>>
+
+        @GET("saved-locations/saved")
+        suspend fun getSavedLocations(@Query("userId") userId: Long): List<FishingLocation>
+
+        @POST("saved-locations/save")
+        fun saveLocation(@Query("userId") userId: Long, @Query("locationId") locationId: Long): Call<ResponseBody>
 
         @GET("locations/{id}")
         suspend fun getFishingSpotById(@Path("id") id: Long): FishingLocation

@@ -1,19 +1,24 @@
 package com.example.baitmatemobile.fragment
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Camera
+import android.graphics.Color
 import androidx.fragment.app.Fragment
 
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Button
+import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.android.volley.Request
 import com.android.volley.RequestQueue
@@ -32,7 +37,10 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.gson.JsonArray
 import kotlinx.coroutines.launch
+import okhttp3.ResponseBody
 import org.json.JSONArray
 import org.json.JSONObject
 import retrofit2.Call
@@ -44,10 +52,10 @@ import kotlin.math.sqrt
 class MapFragment : Fragment() {
 
     private lateinit var requestQueue: RequestQueue
-    private val markers = mutableMapOf<String, Marker?>()
+    private val markers = HashMap<Long, Marker>()
+    private var userId: Long = 0
 
-    private var fishingHotspotsData: JSONArray? = null
-    private var nearbyFishingSpots: JSONArray? = null
+    private var fishingHotspotsData: List<FishingLocation>? = null
     private var weatherForecastResponse: JSONObject? = null
 
     private lateinit var map: SupportMapFragment
@@ -57,10 +65,12 @@ class MapFragment : Fragment() {
     private lateinit var btnMarkFishing: Button
     private lateinit var btnShowHotspots: Button
     private lateinit var searchAdapter: ArrayAdapter<String>
+    private lateinit var sharedPreferences: SharedPreferences
 
     private val callback = OnMapReadyCallback { map ->
         googleMap = map
 
+        /*
         googleMap.setInfoWindowAdapter(object: GoogleMap.InfoWindowAdapter {
             override fun getInfoWindow(marker: Marker): View? {
                 return null
@@ -76,15 +86,17 @@ class MapFragment : Fragment() {
                 return view
             }
         })
+        */
+
+        googleMap.setOnMarkerClickListener { marker ->
+            showBottomSheetDialog(marker)
+            true
+        }
 
         // Move the camera to a default location (Singapore coordinates)
         val singapore = LatLng(1.3521, 103.8198)
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(singapore, 10f))
-        if (fishingHotspotsData != null) {
-            addMarkersToMap(fishingHotspotsData!!)
-        } else {
-            fetchFishingHotspots()
-        }
+        loadFishingHotspots()
     }
 
     override fun onCreateView(
@@ -94,11 +106,16 @@ class MapFragment : Fragment() {
     ): View? {
         val rootView = inflater.inflate(R.layout.fragment_map, container, false)
 
+        sharedPreferences = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        userId = sharedPreferences.getLong("userId", 0)
+
         map = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         searchBox = rootView.findViewById(R.id.et_search)
         btnSearch = rootView.findViewById(R.id.btn_search)
         btnMarkFishing = rootView.findViewById(R.id.btn_mark_fishing)
-        btnShowHotspots = rootView.findViewById(R.id.btn_show_hotspots)
+        btnShowHotspots = rootView.findViewById(R.id.btn_show_savedSpots)
+        requestQueue = Volley.newRequestQueue(requireContext())
+        preloadWeatherForecast()
 
         return rootView
     }
@@ -107,25 +124,68 @@ class MapFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         map.getMapAsync(callback)
 
-        requestQueue = Volley.newRequestQueue(requireContext())
-        preloadFishingHotspots()
-        preloadWeatherForecast()
         setButtonListeners()
     }
 
-    private fun preloadFishingHotspots() {
-        val url = "http://10.0.2.2:8080/api/locations"
-        val request = JsonArrayRequest(
-            Request.Method.GET, url, null,
-            { response ->
-                Log.d("MapFragment", "Hotspots preloaded: ${response.length()} locations")
-                fishingHotspotsData = response
-            },
-            { error ->
-                Log.e("MapFragment", "Error preloading hotspots: ${error.message}")
+    private fun showBottomSheetDialog(marker: Marker) {
+        // Create BottomSheetDialog
+        val bottomSheetDialog = BottomSheetDialog(requireContext())
+
+        // Inflate custom layout
+        val view = layoutInflater.inflate(R.layout.bottom_sheet_layout, null)
+        bottomSheetDialog.setContentView(view)
+
+        // Access views in the layout
+        val titleTextView = view.findViewById<TextView>(R.id.title)
+        val snippetTextView = view.findViewById<TextView>(R.id.snippet)
+        val saveButton = view.findViewById<Button>(R.id.save_button)
+
+        // Set marker data to the views
+        titleTextView.text = marker.title
+        snippetTextView.text = marker.snippet
+
+        // Handle "Save" button click
+        saveButton.setOnClickListener {
+            val locationId = markers.entries.find { it.value == marker }?.key ?: -1L
+            if (locationId != -1L) {
+                saveLocation(locationId)
+            } else {
+                Toast.makeText(requireContext(), "Error: Unable to find location ID", Toast.LENGTH_SHORT).show()
             }
-        )
-        requestQueue.add(request)
+        }
+
+        // Show the dialog
+        bottomSheetDialog.show()
+    }
+
+    private fun saveLocation(locationId: Long) {
+        Log.d("MapFragment", "Attempting to save location for $userId")
+
+
+        RetrofitClient.instance.saveLocation(userId, locationId).enqueue(object: Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                Log.d("MapFragment", "Response code: ${response.code()}")
+                Log.d("MapFragment", "Response body: ${response.body()}")
+                if (response.isSuccessful) {
+                    Toast.makeText(requireContext(), "Locations saved successfully!", Toast.LENGTH_SHORT).show()
+                    //updateSaveButtonColor(locationId, true)
+                } else {
+                    Toast.makeText(requireContext(), "Failed to save location.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                Log.e("MapFragment", "Failed to save location. Error: ${t.message}")
+                Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun loadFishingHotspots() {
+        if (fishingHotspotsData != null) {
+            addMarkersToMap(fishingHotspotsData!!)
+        } else {
+            fetchFishingHotspots()
+        }
     }
 
 
@@ -151,72 +211,52 @@ class MapFragment : Fragment() {
             return
         }
 
-        val url = "http://10.0.2.2:8080/api/locations"
-        val request = JsonArrayRequest(
-            Request.Method.GET, url, null,
-            { response ->
-                Log.d("MapFragment", "Response received.")
-                fishingHotspotsData = response
-                addMarkersToMap(response)
-            },
-            { error ->
-                Log.e("MapFragment", "Request error: ${error.message}")
-                error.printStackTrace()
-            }
-        )
-        requestQueue.add(request)
-    }
+        RetrofitClient.instance.getFishingLocations().enqueue(object : Callback<List<FishingLocation>> {
+            override fun onResponse(call: Call<List<FishingLocation>>, response: Response<List<FishingLocation>>) {
+                if (response.isSuccessful) {
+                    Log.d("MapFragment", "Response received.")
+                    val locations = response.body()
 
-    private fun addMarkersToMap(response: JSONArray) {
-        Log.d("MapFragment", "Parsing response, total locations: ${response.length()}")
-        if (response.length()>0) {
-            for (i in 0 until response.length()) {
-                try{
-                    val location = response.getJSONObject(i)
-                    val name = location.getString("locationName")
-                    val latitude = location.getDouble("latitude")
-                    val longitude = location.getDouble("longitude")
-
-                    //Log.d("MapFragment", "Adding Marker: $name at ($latitude, $longitude)")
-
-                    val position = LatLng(latitude, longitude)
-                    val marker = googleMap.addMarker(MarkerOptions().position(position).title(name))
-                    markers[name] = marker
-                    fetchWeatherForecast(name, position)
-                } catch (e: Exception) {
-                    Log.e("MapFragment", "Error parsing location at index $i: ${e.message}")
+                    if (locations != null) {
+                        fishingHotspotsData = locations
+                        addMarkersToMap(fishingHotspotsData!!)
+                    } else {
+                        Log.e("MapFragment", "Received empty response body.")
+                    }
+                } else {
+                    Log.e("MapFragment", "Request failed with status: ${response.code()}")
                 }
             }
-        } else {
-            Log.d("MapFragment", "No locations found in response")
-        }
 
+            override fun onFailure(call: Call<List<FishingLocation>>, t: Throwable) {
+                Log.e("MapFragment", "Request error: ${t.message}")
+            }
+        })
+    }
+
+
+    private fun addMarkersToMap(locations: List<FishingLocation>) {
+        if (locations.isNotEmpty()) {
+            locations.forEach { location ->
+                val position = LatLng(location.latitude, location.longitude)
+                val marker = googleMap.addMarker(MarkerOptions().position(position).title(location.locationName))
+                if (marker != null) {
+                    markers[location.id] = marker
+                    marker.tag = layoutInflater.inflate(R.layout.custom_info_window, null)
+                }
+                fetchWeatherForecast(location.locationName, position)
+            }
+        }
     }
 
     private fun fetchWeatherForecast(locationName: String, position: LatLng) {
-        // Use the preloaded weather forecast if available.
-        if (weatherForecastResponse != null) {
-            val forecast = parseWeatherForecast(weatherForecastResponse!!, position)
-            val validPeriod = parseValidPeriod(weatherForecastResponse!!)
-            updateMarkerWithWeather(position, locationName, forecast, validPeriod)
+        val forecast = if (weatherForecastResponse != null) {
+            parseWeatherForecast(weatherForecastResponse!!, position)
         } else {
-            // If not preloaded, make a request.
-            val url = "https://api-open.data.gov.sg/v2/real-time/api/two-hr-forecast"
-            val request = JsonObjectRequest(
-                Request.Method.GET, url, null,
-                { response ->
-                    val forecast = parseWeatherForecast(response, position)
-                    //Log.d("MapFragment", "Forecast for $locationName updated to $forecast")
-                    val validPeriod = parseValidPeriod(response)
-                    updateMarkerWithWeather(position, locationName, forecast, validPeriod)
-                },
-                { error ->
-                    Log.e("MapFragment", "Weather request error: ${error.message}")
-                    error.printStackTrace()
-                }
-            )
-            requestQueue.add(request)
+            "No forecast available"
         }
+        val validPeriod = parseValidPeriod(weatherForecastResponse!!)
+        updateMarkerWithWeather(locationName, forecast, validPeriod)
     }
 
     private fun parseWeatherForecast(response: JSONObject, position: LatLng): String {
@@ -251,8 +291,8 @@ class MapFragment : Fragment() {
         return validPeriod.getString("text")
     }
 
-    private fun updateMarkerWithWeather(position: LatLng, locationName: String, forecast: String, validPeriod: String) {
-        val marker = markers[locationName]
+    private fun updateMarkerWithWeather(locationName: String, forecast: String, validPeriod: String) {
+        val marker = markers.values.find { it.title == locationName }
         if (marker!=null) {
             marker.snippet = "2h forecast: $forecast\n" +
                     "Valid: $validPeriod"
@@ -274,7 +314,7 @@ class MapFragment : Fragment() {
         }
 
         btnShowHotspots.setOnClickListener{
-
+            fetchSavedSpots(userId)
         }
     }
 
@@ -315,19 +355,23 @@ class MapFragment : Fragment() {
     }
 
     private fun displayFishingSpotsOnMap(nearbySpots: List<FishingLocation>) {
-        val nearbySpotNames = nearbySpots.map { it.locationName }.toSet()
-        for ((spotName, marker) in markers) {
-            if (spotName in nearbySpotNames) {
-                marker?.isVisible = true
-            } else {
-                marker?.isVisible = false
-            }
+        val nearbySpotIds = nearbySpots.map { it.id }.toSet()
+        for ((spotId, marker) in markers) {
+            marker?.isVisible = spotId in nearbySpotIds
         }
+    }
 
-        if (nearbySpots.isNotEmpty()) {
-            val firstSpot = nearbySpots.first()
-            val position = LatLng(firstSpot.latitude, firstSpot.longitude)
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 12f))
+    private fun fetchSavedSpots(userId: Long) {
+        lifecycleScope.launch {
+            try {
+                val savedSpots = RetrofitClient.instance.getSavedLocations(userId)
+
+                if (savedSpots != null) {
+                    displayFishingSpotsOnMap(savedSpots)
+                } else Toast.makeText(requireContext(),"No saved locations", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Unable to fetch: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
