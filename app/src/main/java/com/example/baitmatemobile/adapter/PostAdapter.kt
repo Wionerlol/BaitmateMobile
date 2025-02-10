@@ -28,7 +28,7 @@ class PostAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_post_staggered, parent, false)
-        return PostViewHolder(userId, view, onItemClick)
+        return PostViewHolder(userId,view, onItemClick)
     }
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
@@ -67,9 +67,33 @@ class PostAdapter(
                 Glide.with(itemView)
                     .load(imageUrl)
                     .placeholder(R.drawable.placeholder)
+                    .error(R.drawable.error_image)
                     .into(ivPostImage)
             } else {
                 ivPostImage.setImageResource(R.drawable.placeholder)
+            }
+
+            itemView.context.lifecycleOwner()?.lifecycleScope?.launch {
+                try {
+                    val latestPost = RetrofitClient.instance.getPostByIdWithUser(post.id ?: return@launch, userId)
+                    val isLiked = latestPost.likedByCurrentUser
+                    val newCount = latestPost.likeCount ?: 0
+
+                    if (isLiked) {
+                        ivLike.setImageResource(R.drawable.ic_like_filled) // 红色like
+                    } else {
+                        ivLike.setImageResource(R.drawable.ic_like_outline)
+                    }
+                    tvLikeCount.text = newCount.toString()
+                    ivLike.tag = isLiked
+
+                    // **同步更新 post 数据**
+                    post.likeCount = newCount
+                    post.likedByCurrentUser = isLiked
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
 
             // 点击图片 -> 详情

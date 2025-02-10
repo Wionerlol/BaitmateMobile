@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.baitmatemobile.R
@@ -18,6 +19,7 @@ import com.example.baitmatemobile.adapter.PostAdapter
 import com.example.baitmatemobile.databinding.FragmentDiscoverBinding
 import com.example.baitmatemobile.network.RetrofitClient
 import kotlinx.coroutines.launch
+import kotlin.properties.ReadOnlyProperty
 
 class DiscoverFragment : Fragment() {
 
@@ -41,6 +43,10 @@ class DiscoverFragment : Fragment() {
         val userId = sharedPrefs.getLong("userId", -1)
         initRecyclerView(userId)
         loadPosts()
+
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            loadPosts()
+        }
     }
 
     private fun initRecyclerView(userId: Long) {
@@ -63,11 +69,14 @@ class DiscoverFragment : Fragment() {
             try {
                 val posts = RetrofitClient.instance.getAllPosts()
                 postAdapter.submitList(posts)
+
+                binding.swipeRefreshLayout.isRefreshing = false
             } catch (e: Exception) {
                 //e.printStackTrace()
-                Log.e("MY_TAG", "请求出错：${e.message}", e)
-                Toast.makeText(requireContext(), "加载失败", Toast.LENGTH_SHORT).show()
+                Log.e("MY_TAG", "Request Error：${e.message}", e)
+                Toast.makeText(requireContext(), "Load posts failed", Toast.LENGTH_SHORT).show()
             }
+            binding.swipeRefreshLayout.isRefreshing = false
         }
     }
 

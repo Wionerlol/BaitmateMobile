@@ -7,14 +7,14 @@ data class Post(
     val postTitle: String?,
     val postContent: String?,
     val postStatus: String?,
-    // 后端是 LocalDateTime，这里前端先用 String?
+
     val postTime: String?,
 
     var likeCount: Int?,
-    val savedCount: Int?,
+    var savedCount: Int?,
     val accuracyScore: Double?,
 
-    // 用户信息
+
     val user: User?,
 
     // 位置（字符串）
@@ -29,6 +29,23 @@ data class Post(
     // 如果要显示被多少人收藏
     val savedByCount: Int?,
 
-    val likedByCurrentUser: Boolean
+    var likedByCurrentUser: Boolean,
+    var savedByCurrentUser: Boolean
+)
+
+data class CreatedPostDTO(
+
+    val postTitle: String?,
+    val postContent: String?,
+    val userId: Long?,
+    val location: String?,
+    val imageBase64List: List<String>
+
+)
+
+data class CreateCommentDTO(
+    val comment: String?,
+    val postId: Long?,
+    val userId: Long?
 )
 

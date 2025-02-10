@@ -2,6 +2,6 @@
     <item android:id="@+id/nav_home" android:icon="@drawable/ic_home" android:title="Home"/>
     <item android:id="@+id/nav_map" android:icon="@drawable/ic_map" android:title="Map"/>
     <item android:id="@+id/nav_photograph" android:icon="@drawable/ic_camera" android:title="Photograph"/>
-    <item android:id="@+id/nav_messages" android:icon="@drawable/ic_message" android:title="Messages"/>
+    <item android:id="@+id/nav_messages" android:icon="@drawable/ic_message" android:title="Notification"/>
     <item android:id="@+id/nav_profile" android:icon="@drawable/ic_profile" android:title="Profile"/>
 </menu>

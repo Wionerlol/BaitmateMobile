@@ -72,6 +72,8 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp-brotli:4.12.0")
     implementation(libs.play.services.location)
     implementation(libs.androidx.media3.common.ktx)
+    implementation("com.squareup.okhttp3:okhttp:3.14.9")
+    implementation(libs.androidx.swiperefreshlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -90,7 +92,7 @@ dependencies {
 
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
     implementation ("com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2")
-    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
-
+    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    implementation ("androidx.fragment:fragment-ktx:1.6.2")
 }

@@ -35,6 +35,7 @@ class ImagePagerAdapter(private val images: List<Image>) :
         Glide.with(holder.itemView)
             .load(imageUrl)
             .placeholder(R.drawable.placeholder) // 占位图
+            .error(R.drawable.error_image) // 错误图
             .into(holder.ivImage)
     }
 
