@@ -39,6 +39,7 @@ data class CreatedPostDTO(
     val postContent: String?,
     val userId: Long?,
     val location: String?,
+    val status: String?,
     val imageBase64List: List<String>
 
 )

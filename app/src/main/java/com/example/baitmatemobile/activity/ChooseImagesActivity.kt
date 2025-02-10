@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.ContentUris
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.Button
@@ -33,7 +34,11 @@ class ChooseImagesActivity : AppCompatActivity() {
         rvImages = findViewById(R.id.rvImages)
         btnNext = findViewById(R.id.btnNext)
 
-        val permission = Manifest.permission.READ_MEDIA_IMAGES
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
         if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(permission), READ_EXTERNAL_STORAGE_REQUEST_CODE)
         } else {

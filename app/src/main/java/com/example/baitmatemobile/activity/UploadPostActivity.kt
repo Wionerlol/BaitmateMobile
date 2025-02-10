@@ -99,17 +99,32 @@ class UploadPostActivity : AppCompatActivity() {
 
         var userId = sharedPrefs.getLong("userId",0)
 
-        val post = CreatedPostDTO(
-            postTitle = title,
-            postContent = content,
-            userId = userId,
-            location = if (locationSelected.isEmpty()) null else locationSelected,
-            imageBase64List = imageBase64
-        )
-
         // 协程或回调方式请求
         lifecycleScope.launch {
             try {
+                val checkImageResults = mutableListOf<String>()
+                for(image in imageBase64){
+                    val request = ImageCheckRequest(image)
+                    val response = RetrofitClient.instance.checkImage(request)
+                    if (response.isSuccessful) {
+                        val status = response.body()?.status
+                        if (status != null) {
+                            checkImageResults.add(status)
+                        } else {
+                            throw Exception("Empty response body")
+                        }
+                    } else {
+                        throw Exception("Image check failed: ${response.code()}")
+                    }
+                }
+                val post = CreatedPostDTO(
+                    postTitle = title,
+                    postContent = content,
+                    userId = userId,
+                    location = if (locationSelected.isEmpty()) null else locationSelected,
+                    status = if (checkImageResults.contains("pending")) "pending1" else "approved",
+                    imageBase64List = imageBase64
+                )
                 val createdPost = RetrofitClient.instance.createPost(post)
                 // 请求成功，跳转回Home Fragment
                 // 常见做法是：finish()，如果是单Activity+多Fragment架构，可以让Activity去切换到HomeFragment
@@ -122,7 +137,12 @@ class UploadPostActivity : AppCompatActivity() {
         }
     }
 
-    fun uriToByteArray(context: Context, uri: Uri): ByteArray? {
+    data class ImageCheckRequest(val image: String)
+    data class ImageCheckResponse(
+        val status: String
+    )
+
+    private fun uriToByteArray(context: Context, uri: Uri): ByteArray? {
         return try {
             context.contentResolver.openInputStream(uri)?.use { inputStream ->
                 inputStream.readBytes()
@@ -132,7 +152,7 @@ class UploadPostActivity : AppCompatActivity() {
             null
         }
     }
-    fun byteArrayToBase64(byteArray: ByteArray): String {
+    private fun byteArrayToBase64(byteArray: ByteArray): String {
         return Base64.encodeToString(byteArray, Base64.NO_WRAP)
     }
 

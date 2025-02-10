@@ -4,6 +4,7 @@ package com.example.baitmatemobile.network
 import com.example.baitmatemobile.model.CreateCommentDTO
 import com.example.baitmatemobile.model.CreatedPostDTO
 import com.example.baitmatemobile.activity.CatchDetailActivity
+import com.example.baitmatemobile.activity.UploadPostActivity
 import com.example.baitmatemobile.model.CatchRecordDTO
 import com.example.baitmatemobile.model.FishingLocation
 import com.example.baitmatemobile.model.ForgotPasswordRequest
@@ -62,6 +63,7 @@ interface ApiService {
 
         @POST("/api/catch-records/add")
         fun saveCatchRecord(@Body catchRecord: CatchRecordDTO): Call<Void>
+
 
         @POST("logout")
         fun logout(@Header("Authorization") token: String): Call<ResponseBody>
@@ -179,4 +181,18 @@ interface ApiService {
         ): Call<List<User>>
         */
 
+
+        @GET("user/{targetUserId}/isFollowing")
+        fun isFollowing(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<Boolean>
+
+        @POST("user/{targetUserId}/follow")
+        fun followUser(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<ResponseBody>
+
+        @POST("user/{targetUserId}/unfollow")
+        fun unfollowUser(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<ResponseBody>
+
+        @POST("http://10.0.2.2:5000/api/image/check")
+        suspend fun checkImage(
+                @Body image: UploadPostActivity.ImageCheckRequest
+        ): Response<UploadPostActivity.ImageCheckResponse>
 }
