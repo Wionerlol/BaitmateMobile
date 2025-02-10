@@ -18,6 +18,7 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import retrofit2.Retrofit
 
 class ProfileFragment : Fragment() {
 
@@ -105,75 +106,85 @@ class ProfileFragment : Fragment() {
                 Toast.makeText(requireContext(), "跳转到编辑页面", Toast.LENGTH_SHORT).show()
             }
         } else {
-            checkFollowingStatus(token, user.id!!)
+            checkFollowingStatus(loggedInUserId, user.id!!)
         }
     }
 
-    private fun checkFollowingStatus(token: String, userId: Long) {
-        RetrofitClient.instance.isFollowing("Bearer $token", userId).enqueue(object : Callback<Boolean> {
-            override fun onResponse(call: Call<Boolean>, response: Response<Boolean>) {
+    //Do not touch methods from here onwards(Hannah)
+    private fun checkFollowingStatus(userId: Long, targetUserId: Long) {
+        RetrofitClient.instance.getFollowing(userId).enqueue(object : Callback<List<User>> {
+            override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
                 if (response.isSuccessful) {
-                    isFollowing = response.body() ?: false
+                    val following = response?.body()
+                    isFollowing = following?.any {it.id == targetUserId} ?: false
                     actionButton.text = if (isFollowing) "Unfollow" else "Follow"
                     actionButton.visibility = View.VISIBLE
 
                     actionButton.setOnClickListener {
-                        if (isFollowing) unfollowUser(token, userId)
-                        else followUser(token, userId)
+                        if (isFollowing) unfollowUser(userId, targetUserId)
+                        else followUser(userId, targetUserId)
                     }
                 }
             }
 
-            override fun onFailure(call: Call<Boolean>, t: Throwable) {
+            override fun onFailure(call: Call<List<User>>, t: Throwable) {
                 Toast.makeText(requireContext(), "Failed to check following status", Toast.LENGTH_SHORT).show()
             }
         })
     }
 
-    private fun followUser(token: String, userId: Long) {
-        RetrofitClient.instance.followUser("Bearer $token", userId).enqueue(object : Callback<ResponseBody> {
+    private fun followUser(userId: Long, targetUserId: Long) {
+        RetrofitClient.instance.followUser(userId, targetUserId).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
                     isFollowing = true
                     actionButton.text = "Unfollow"
-                    updateFollowCounts(1)
+                    getFollowersCount(targetUserId)
                 }
             }
-
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {}
         })
     }
 
-    private fun unfollowUser(token: String, userId: Long) {
-        RetrofitClient.instance.unfollowUser("Bearer $token", userId).enqueue(object : Callback<ResponseBody> {
+    private fun unfollowUser(userId: Long, targetUserId: Long) {
+        RetrofitClient.instance.unfollowUser(userId, targetUserId).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
                     isFollowing = false
                     actionButton.text = "Follow"
-                    updateFollowCounts(-1)
+                    getFollowersCount(targetUserId)
                 }
             }
-
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {}
         })
     }
 
-    private fun updateFollowCounts(change: Int) {
-        val token = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-            .getString("auth_token", null) ?: return
-
-        RetrofitClient.instance.getFollowersCount("Bearer $token", viewedUserId!!)
-            .enqueue(object : Callback<Int> {
-                override fun onResponse(call: Call<Int>, response: Response<Int>) {
+    private fun getFollowingCount(userId: Long) {
+        RetrofitClient.instance.getFollowing(userId).enqueue(object : Callback<List<User>> {
+                override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
                     if (response.isSuccessful) {
-                        followersCountTextView.text = "${response.body()} Followers"
+                        followingCountTextView.text = "${response.body()!!.size} Following"
                     }
                 }
 
-                override fun onFailure(call: Call<Int>, t: Throwable) {
-                    Toast.makeText(requireContext(), "Failed to update followers count", Toast.LENGTH_SHORT).show()
+                override fun onFailure(call: Call<List<User>>, t: Throwable) {
+                    Toast.makeText(requireContext(), "Failed to update following count", Toast.LENGTH_SHORT).show()
                 }
             })
+    }
+
+    private fun getFollowersCount(userId: Long) {
+        RetrofitClient.instance.getFollowers(userId).enqueue(object : Callback<List<User>> {
+            override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
+                if (response.isSuccessful) {
+                    followersCountTextView.text = "${response.body()!!.size} Followers"
+                }
+            }
+
+            override fun onFailure(call: Call<List<User>>, t: Throwable) {
+                Toast.makeText(requireContext(), "Failed to update followers count", Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun logout() {

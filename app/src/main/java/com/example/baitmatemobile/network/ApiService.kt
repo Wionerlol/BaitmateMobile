@@ -63,7 +63,6 @@ interface ApiService {
         @POST("/api/catch-records/add")
         fun saveCatchRecord(@Body catchRecord: CatchRecordDTO): Call<Void>
 
-
         @POST("logout")
         fun logout(@Header("Authorization") token: String): Call<ResponseBody>
 
@@ -106,6 +105,51 @@ interface ApiService {
         @GET("user/profile")
         fun getUserProfile(@Header("Authorization") token: String): Call<User>
 
+        @GET("user/{userId}/profile")
+        fun getUserProfileById(@Header("Authorization") token: String, @Path("userId") userId: Long): Call<User>
+
+        @Multipart
+        @POST("http://10.0.2.2:5000/api/image/predict")
+        suspend fun uploadImage(
+                @Part image: MultipartBody.Part
+        ): Response<List<List<String>>>
+
+        @GET("locations")
+        suspend fun getLocations(): Response<List<CatchDetailActivity.LocationDTO>>
+
+        @POST("catch-records/add")
+        suspend fun addCatchRecord(@Body record: CatchRecordDTO): Response<Unit>
+
+        @PUT("posts/{postId}/save")
+        suspend fun toggleSave(
+                @Path("postId") postId: Long,
+                @Query("userId") userId: Long
+        ): Post
+
+        @POST("posts/comment")
+        suspend fun createComment(@Body comment: CreateCommentDTO): Long
+
+        @GET("/user/{userId}/followers")
+        fun getFollowers(@Path("userId") userId: Long): Call<List<User>>
+
+        @GET("/user/{userId}/following")
+        fun getFollowing(@Path("userId") userId: Long): Call<List<User>>
+
+        @POST("/user/{userId}/follow")
+        fun followUser(@Path("userId") userId: Long, @Query("targetUserId") targetUserId: Long): Call<ResponseBody>
+
+        @POST("/user/{userId}/unfollow")
+        fun unfollowUser(@Path("userId") userId: Long, @Query("targetUserId") targetUserId: Long): Call<ResponseBody>
+        /*
+        @GET("user/{targetUserId}/isFollowing")
+        fun isFollowing(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<Boolean>
+
+        @POST("user/{targetUserId}/follow")
+        fun followUser(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<ResponseBody>
+
+        @POST("user/{targetUserId}/unfollow")
+        fun unfollowUser(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<ResponseBody>
+
         // ✅ 获取某个用户的关注人数（可用于不同用户）
         @GET("user/{userId}/following/count")
         fun getFollowingCount(
@@ -133,38 +177,6 @@ interface ApiService {
                 @Header("Authorization") token: String,
                 @Path("userId") userId: Long
         ): Call<List<User>>
+        */
 
-
-        @GET("user/{userId}/profile")
-        fun getUserProfileById(@Header("Authorization") token: String, @Path("userId") userId: Long): Call<User>
-
-        @GET("user/{targetUserId}/isFollowing")
-        fun isFollowing(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<Boolean>
-
-        @POST("user/{targetUserId}/follow")
-        fun followUser(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<ResponseBody>
-
-        @POST("user/{targetUserId}/unfollow")
-        fun unfollowUser(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<ResponseBody>
-
-        @Multipart
-        @POST("http://10.0.2.2:5000/api/image/predict")
-        suspend fun uploadImage(
-                @Part image: MultipartBody.Part
-        ): Response<List<List<String>>>
-
-        @GET("locations")
-        suspend fun getLocations(): Response<List<CatchDetailActivity.LocationDTO>>
-
-        @POST("catch-records/add")
-        suspend fun addCatchRecord(@Body record: CatchRecordDTO): Response<Unit>
-
-        @PUT("posts/{postId}/save")
-        suspend fun toggleSave(
-                @Path("postId") postId: Long,
-                @Query("userId") userId: Long
-        ): Post
-
-        @POST("posts/comment")
-        suspend fun createComment(@Body comment: CreateCommentDTO): Long
 }
