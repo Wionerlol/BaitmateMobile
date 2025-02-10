@@ -1,6 +1,8 @@
 package com.example.baitmatemobile.network
 
 
+import com.example.baitmatemobile.model.CreateCommentDTO
+import com.example.baitmatemobile.model.CreatedPostDTO
 import com.example.baitmatemobile.activity.CatchDetailActivity
 import com.example.baitmatemobile.model.CatchRecordDTO
 import com.example.baitmatemobile.model.FishingLocation
@@ -74,19 +76,23 @@ interface ApiService {
         @POST("register")
         fun register(@Body request: RegisterRequest): Call<ResponseBody>
 
-        // ✅ 获取所有 Post
+        // 获取所有 Post
         @GET("posts")
         suspend fun getAllPosts(): List<Post>
 
-        // ✅ 获取单个 Post
+        // 获取单个 Post
         @GET("posts/{id}")
         suspend fun getPostById(@Path("id") id: Long): Post
 
-        // ✅ 创建 Post
-        @POST("posts")
-        suspend fun createPost(@Body post: Post): Post
+        @GET("posts/{id}/by-user")
+        suspend fun getPostByIdWithUser(@Path("id") id: Long,
+                                @Query("userId") userId: Long): Post
 
-        // ✅ 更新喜爱状态
+        // 创建 Post
+        @POST("posts/create")
+        suspend fun createPost(@Body post: CreatedPostDTO): Long
+
+        // 更新喜爱状态
         @PUT("posts/{postId}/like")
         suspend fun toggleLike(
                 @Path("postId") postId: Long,
@@ -149,4 +155,13 @@ interface ApiService {
 
         @POST("catch-records/add")
         suspend fun addCatchRecord(@Body record: CatchRecordDTO): Response<Unit>
+
+        @PUT("posts/{postId}/save")
+        suspend fun toggleSave(
+                @Path("postId") postId: Long,
+                @Query("userId") userId: Long
+        ): Post
+
+        @POST("posts/comment")
+        suspend fun createComment(@Body comment: CreateCommentDTO): Long
 }

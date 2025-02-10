@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import com.example.baitmatemobile.R
+import com.example.baitmatemobile.activity.ChooseImagesActivity
 import com.example.baitmatemobile.activity.SearchActivity
 import com.example.baitmatemobile.databinding.FragmentHomeBinding
 
@@ -32,6 +33,12 @@ class HomeFragment : Fragment() {
         // 🔍 绑定搜索按钮点击事件
         binding.btnSearch.setOnClickListener {
             val intent = Intent(requireContext(), SearchActivity::class.java)
+            startActivity(intent)
+        }
+
+       binding.btnPost.setOnClickListener {
+            // 跳转到选择图片Activity
+            val intent = Intent(requireContext(), ChooseImagesActivity::class.java)
             startActivity(intent)
         }
 

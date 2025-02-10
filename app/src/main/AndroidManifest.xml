@@ -12,6 +12,11 @@
         </intent>
     </queries>
 
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
@@ -68,6 +73,16 @@
             android:exported="true"
             android:label="PostDetail" />
         <activity android:name=".activity.CatchDetailActivity" />
+
+        <activity
+            android:name=".activity.ChooseImagesActivity"
+            android:exported="true"
+            android:label="ChooseImages" />
+
+        <activity
+            android:name=".activity.UploadPostActivity"
+            android:exported="true"
+            android:label="UploadPost" />
 
     </application>
 
