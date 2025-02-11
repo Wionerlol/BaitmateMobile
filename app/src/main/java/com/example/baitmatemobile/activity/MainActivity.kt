@@ -20,8 +20,6 @@ class MainActivity : AppCompatActivity() {
     private val cameraFragment = CameraFragment()
     private val messagesFragment = MessagesFragment()
     private val profileFragment = ProfileFragment()
-    private val postDetailFragment = PostDetailFragment()
-    private val othersProfileFragment = OthersProfileFragment()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

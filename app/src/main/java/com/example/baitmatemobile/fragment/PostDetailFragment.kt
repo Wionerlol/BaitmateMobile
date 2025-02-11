@@ -62,7 +62,11 @@ class PostDetailFragment : Fragment() {
         val sharedPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         userId = sharedPrefs.getLong("userId", -1)
 
-        ivBack.setOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
+        ivBack.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, HomeFragment())
+                .addToBackStack(null)
+                .commit() }
         btnFollow.setOnClickListener { toggleFollow() }
 
         if (postId == null || postId == -1L) {
