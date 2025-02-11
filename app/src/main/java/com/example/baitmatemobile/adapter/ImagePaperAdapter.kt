@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.baitmatemobile.R
 import com.example.baitmatemobile.model.Image
+import com.example.baitmatemobile.network.RetrofitClient
 
 class ImagePagerAdapter(private val images: List<Image>) :
     RecyclerView.Adapter<ImagePagerAdapter.ImageViewHolder>() {
@@ -29,7 +30,7 @@ class ImagePagerAdapter(private val images: List<Image>) :
         // 2. 如果你有后端下载图片的接口，可以这样拼接
         //    比如 GET /api/images/oid/{oid} 返回图片流
         //    这里演示一个假设的 url
-        val imageUrl = "http://10.0.2.2:8080/api/posts/oid/$imageOid"
+        val imageUrl = RetrofitClient.retrofit.baseUrl().toString() + "posts/oid/$imageOid"
 
         // 3. 用 Glide 加载
         Glide.with(holder.itemView)

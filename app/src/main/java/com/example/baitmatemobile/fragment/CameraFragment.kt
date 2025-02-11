@@ -191,7 +191,7 @@ class CameraFragment : Fragment() {
                             fishId = item[0].toLong(),
                             fishName = item[1],
                             confidence = round(item[2].toDouble()).toInt(),
-                            imageUrl = "http://10.0.2.2:8080/fish/image/${item[0]}"
+                            imageUrl = RetrofitClient.retrofit.baseUrl().toString() + "fish/image/${item[0]}"
                         )
                     }
                     resultList.clear()

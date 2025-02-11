@@ -129,6 +129,9 @@ interface ApiService {
                 @Query("userId") userId: Long
         ): Post
 
+        @GET("catch-records/user/{userId}")
+        suspend fun getCatchRecordsByUserId(@Path ("userId") userId: Long): List<CatchRecordDTO>
+
         @POST("posts/comment")
         suspend fun createComment(@Body comment: CreateCommentDTO): Long
 

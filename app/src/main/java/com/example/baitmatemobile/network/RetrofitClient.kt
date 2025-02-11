@@ -7,11 +7,14 @@ object RetrofitClient {
     private const val BASE_URL = "http://10.0.2.2:8080/api/"
     //localhost for android emulator
 
-    val instance: ApiService by lazy {
+    val retrofit: Retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(ApiService::class.java)
+    }
+
+    val instance: ApiService by lazy {
+        retrofit.create(ApiService::class.java)
     }
 }

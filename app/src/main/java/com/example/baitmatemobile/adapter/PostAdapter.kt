@@ -50,7 +50,7 @@ class PostAdapter(
         private val tvLikeCount: TextView = itemView.findViewById(R.id.tvLikeCount)
 
         // 你可能在 ApiClient 里定义了一个 BASE_URL，这里手动写死示例
-        private val IMAGE_BASE_URL = "http://10.0.2.2:8080/api/posts/oid/"
+        private val IMAGE_BASE_URL = RetrofitClient.retrofit.baseUrl().toString() + "posts/oid/"
 
         fun bind(post: Post) {
             // 设置标题
