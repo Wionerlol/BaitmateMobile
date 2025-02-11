@@ -22,9 +22,8 @@ jobs:
       - name: 🛠 Grant execute permission for gradlew
         run: chmod +x gradlew
 
-
-      - name: 📦 Set up Gradle cache
-        uses: gradle/gradle-build-action@v2
+      - name: 📦 Set up Gradle cache (升级到 `v3`)
+        uses: gradle/gradle-build-action@v3
 
       - name: 🚀 Build Debug APK
         run: ./gradlew assembleDebug
@@ -32,8 +31,8 @@ jobs:
       - name: 📝 Run Unit Tests
         run: ./gradlew testDebugUnitTest
 
-      - name: 🚀 Upload APK as Artifact
-        uses: actions/upload-artifact@v3
+      - name: 🚀 Upload APK as Artifact (升级 `upload-artifact@v4`)
+        uses: actions/upload-artifact@v4
         with:
           name: app-debug.apk
           path: app/build/outputs/apk/debug/app-debug.apk
