@@ -3,6 +3,7 @@ package com.example.baitmatemobile.fragment
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,16 +11,23 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.viewpager2.widget.ViewPager2
 import com.example.baitmatemobile.R
 import com.example.baitmatemobile.activity.LoginActivity
+import com.example.baitmatemobile.adapter.ProfileTabsAdapter
 import com.example.baitmatemobile.model.User
 import com.example.baitmatemobile.network.RetrofitClient
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
-
 class ProfileFragment : Fragment() {
 
     private lateinit var userNameTextView: TextView
@@ -28,9 +36,12 @@ class ProfileFragment : Fragment() {
     private lateinit var followersCountTextView: TextView
     private lateinit var actionButton: Button
     private lateinit var btnLogout: Button
+    private lateinit var tabLayout: TabLayout
+    private lateinit var viewPager: ViewPager2
 
     private var viewedUserId: Long? = null
     private var isFollowing = false
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,12 +55,33 @@ class ProfileFragment : Fragment() {
         followersCountTextView = view.findViewById(R.id.followersCount)
         actionButton = view.findViewById(R.id.actionButton)
         btnLogout = view.findViewById(R.id.btnLogout)
+        tabLayout = view.findViewById(R.id.tabLayout)
+        viewPager = view.findViewById(R.id.viewPager)
 
-        loadUserProfile()
+        // Set up ViewPager2 with the adapter
+        val adapter = ProfileTabsAdapter(requireActivity())
+        viewPager.adapter = adapter
 
-        btnLogout.setOnClickListener { logout() }
+        // Connect TabLayout with ViewPager2
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            when (position) {
+                0 -> tab.text = "Posts"
+                1 -> tab.text = "Catch Record"
+            }
+        }.attach()
+
+        //loadUserProfile()
 
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val sharedPrefs = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val userId = sharedPrefs.getLong("userId", -1)
+        getFollowersCount(userId)
+        getFollowingCount(userId)
+        btnLogout.setOnClickListener { logout() }
     }
 
     private fun loadUserProfile() {
@@ -110,7 +142,75 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    //Do not touch methods from here onwards(Hannah)
+    private fun getFollowingCount(userId: Long) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = RetrofitClient.instance.getFollowing(userId).execute()
+                if (response.isSuccessful) {
+                    val followingList = response.body() ?: emptyList()
+                    withContext(Dispatchers.Main) {
+                        followingCountTextView.text = "${followingList.size} Following"
+                    }
+                } else {
+                    Log.e("ProfileFragment", "Failed to fetch following count: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("ProfileFragment", "Network error while fetching following count", e)
+            }
+        }
+    }
+
+    private fun getFollowersCount(userId: Long) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = RetrofitClient.instance.getFollowers(userId).execute()
+                if (response.isSuccessful) {
+                    val followersList = response.body() ?: emptyList()
+                    withContext(Dispatchers.Main) {
+                        followersCountTextView.text = "${followersList.size} Followers"
+                    }
+                } else {
+                    Log.e("ProfileFragment", "Failed to fetch followers count: ${response.errorBody()?.string()}")
+                }
+            } catch (e: Exception) {
+                Log.e("ProfileFragment", "Network error while fetching followers count", e)
+            }
+        }
+    }
+
+    private fun logout() {
+        val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val token = sharedPreferences.getString("auth_token", "") ?: ""
+
+        if (token.isNullOrEmpty()) {
+            Toast.makeText(requireContext(), "No valid session found", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        RetrofitClient.instance.logout("$token").enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                if (response.isSuccessful) {
+                    val editor = sharedPreferences.edit()
+                    editor.clear()
+                    editor.apply()
+
+                    val intent = Intent(requireActivity(), LoginActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                    requireActivity().finish()
+                } else {
+                    Toast.makeText(requireContext(), "Logout failed", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                Toast.makeText(requireContext(), "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+
+    //to be used for viewing other user's profile
     private fun checkFollowingStatus(userId: Long, targetUserId: Long) {
         RetrofitClient.instance.getFollowing(userId).enqueue(object : Callback<List<User>> {
             override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
@@ -159,62 +259,4 @@ class ProfileFragment : Fragment() {
         })
     }
 
-    private fun getFollowingCount(userId: Long) {
-        RetrofitClient.instance.getFollowing(userId).enqueue(object : Callback<List<User>> {
-                override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
-                    if (response.isSuccessful) {
-                        followingCountTextView.text = "${response.body()!!.size} Following"
-                    }
-                }
-
-                override fun onFailure(call: Call<List<User>>, t: Throwable) {
-                    Toast.makeText(requireContext(), "Failed to update following count", Toast.LENGTH_SHORT).show()
-                }
-            })
-    }
-
-    private fun getFollowersCount(userId: Long) {
-        RetrofitClient.instance.getFollowers(userId).enqueue(object : Callback<List<User>> {
-            override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
-                if (response.isSuccessful) {
-                    followersCountTextView.text = "${response.body()!!.size} Followers"
-                }
-            }
-
-            override fun onFailure(call: Call<List<User>>, t: Throwable) {
-                Toast.makeText(requireContext(), "Failed to update followers count", Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
-
-    private fun logout() {
-        val sharedPreferences = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val token = sharedPreferences.getString("auth_token", null)
-
-        if (token.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), "No valid session found", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        RetrofitClient.instance.logout("$token").enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                if (response.isSuccessful) {
-                    val editor = sharedPreferences.edit()
-                    editor.clear()
-                    editor.apply()
-
-                    val intent = Intent(requireActivity(), LoginActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    startActivity(intent)
-                    requireActivity().finish()
-                } else {
-                    Toast.makeText(requireContext(), "Logout failed", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                Toast.makeText(requireContext(), "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
 }

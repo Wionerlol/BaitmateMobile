@@ -40,7 +40,6 @@ import retrofit2.Callback
 import retrofit2.Response
 import kotlin.math.pow
 import kotlin.math.sqrt
-
 class MapFragment : Fragment() {
 
     private lateinit var requestQueue: RequestQueue
@@ -56,6 +55,7 @@ class MapFragment : Fragment() {
     private lateinit var btnSearch: Button
     private lateinit var btnMarkFishing: Button
     private lateinit var btnShowHotspots: Button
+
     private lateinit var searchAdapter: ArrayAdapter<String>
     private lateinit var sharedPreferences: SharedPreferences
 
@@ -148,7 +148,7 @@ class MapFragment : Fragment() {
         val locationId = markers.entries.find { it.value == marker }?.key ?: -1L
         if (locationId != -1L) {
             Log.d("MapFragment", "Checking if user $userId has saved location $locationId")
-            val isLocationSaved = checkSavedLocations(locationId) { isSaved ->
+            checkSavedLocations(locationId) { isSaved ->
                 if (isSaved) {
                     saveButton.text = "Saved"
                     saveButton.setBackgroundColor(Color.parseColor("#9E9E9E"))
@@ -282,13 +282,13 @@ class MapFragment : Fragment() {
     }
 
     private fun fetchWeatherForecast(locationName: String, position: LatLng) {
-        val forecast = if (weatherForecastResponse != null) {
-            parseWeatherForecast(weatherForecastResponse!!, position)
+        if (weatherForecastResponse != null) {
+            val forecast = parseWeatherForecast(weatherForecastResponse!!, position)
+            val validPeriod = parseValidPeriod(weatherForecastResponse!!)
+            updateMarkerWithWeather(locationName, forecast, validPeriod)
         } else {
             "No forecast available"
         }
-        val validPeriod = parseValidPeriod(weatherForecastResponse!!)
-        updateMarkerWithWeather(locationName, forecast, validPeriod)
     }
 
     private fun parseWeatherForecast(response: JSONObject, position: LatLng): String {

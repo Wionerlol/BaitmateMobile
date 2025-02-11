@@ -29,6 +29,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
+
 interface ApiService {
         @GET("locations")
         fun getFishingLocations(): Call<List<FishingLocation>>
@@ -130,6 +131,9 @@ interface ApiService {
 
         @POST("posts/comment")
         suspend fun createComment(@Body comment: CreateCommentDTO): Long
+
+        @GET("posts/user/{userId}")
+        suspend fun getPostsByUserId(@Path("userId") userId: Long): List<Post>
 
         @GET("/user/{userId}/followers")
         fun getFollowers(@Path("userId") userId: Long): Call<List<User>>
