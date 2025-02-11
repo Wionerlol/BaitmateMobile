@@ -138,16 +138,19 @@ interface ApiService {
         @GET("posts/user/{userId}")
         suspend fun getPostsByUserId(@Path("userId") userId: Long): List<Post>
 
-        @GET("/user/{userId}/followers")
+        @GET("user/{userId}")
+        fun getUserDetails(@Path ("userId") userId: Long): Call<User>
+
+        @GET("user/{userId}/followers")
         fun getFollowers(@Path("userId") userId: Long): Call<List<User>>
 
-        @GET("/user/{userId}/following")
+        @GET("user/{userId}/following")
         fun getFollowing(@Path("userId") userId: Long): Call<List<User>>
 
-        @POST("/user/{userId}/follow")
+        @POST("user/{userId}/follow")
         fun followUser(@Path("userId") userId: Long, @Query("targetUserId") targetUserId: Long): Call<ResponseBody>
 
-        @POST("/user/{userId}/unfollow")
+        @POST("user/{userId}/unfollow")
         fun unfollowUser(@Path("userId") userId: Long, @Query("targetUserId") targetUserId: Long): Call<ResponseBody>
         /*
         @GET("user/{targetUserId}/isFollowing")

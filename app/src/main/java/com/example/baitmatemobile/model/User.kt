@@ -10,9 +10,9 @@ data class User(
     val address: String?,
     val joinDate: String?,
     val userStatus: String?,
-
-    val followingCount: Int? = 0,
-    val followersCount: Int? = 0,
-
-    val profileImage: ByteArray?
+    val profileImage: ByteArray?,
+    val savedPosts: List<Any>?,
+    val savedLocations: List<Any>?,
+    val likedPosts: List<Any>?,
+    val following: List<Any>?
 )
