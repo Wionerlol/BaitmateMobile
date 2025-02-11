@@ -1,16 +1,16 @@
-package com.example.baitmatemobile.activity
+package com.example.baitmatemobile.fragment
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
+import android.content.Context
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Button
 import android.widget.Toast
-import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import androidx.databinding.DataBindingUtil.setContentView
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,15 +18,13 @@ import androidx.viewpager2.widget.ViewPager2
 import com.example.baitmatemobile.R
 import com.example.baitmatemobile.adapter.CommentAdapter
 import com.example.baitmatemobile.adapter.ImagePagerAdapter
-import com.example.baitmatemobile.adapter.lifecycleOwner
-import com.example.baitmatemobile.fragment.OthersProfileFragment
-import com.example.baitmatemobile.fragment.ProfileFragment
+import com.example.baitmatemobile.databinding.FragmentPostDetailBinding
 import com.example.baitmatemobile.model.CreateCommentDTO
 import com.example.baitmatemobile.model.Post
 import com.example.baitmatemobile.network.RetrofitClient
 import kotlinx.coroutines.launch
 
-class PostDetailActivity : AppCompatActivity() {
+class PostDetailFragment : Fragment() {
 
     private lateinit var tvUsername: TextView
     private lateinit var ivBack: ImageView
@@ -42,32 +40,42 @@ class PostDetailActivity : AppCompatActivity() {
     private lateinit var tvSaveCount: TextView
 
     private var postId: Long? = null
-    private var userId: Long =-1
+    private var userId: Long = -1
     private var post: Post? = null
     private val commentAdapter = CommentAdapter()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_post_detail)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View? {
+        val binding: FragmentPostDetailBinding =
+            FragmentPostDetailBinding.inflate(inflater, container, false)
+        binding.setFragment(this)
+        return binding.root
+    }
 
-        initViews()
-        postId = intent.getLongExtra("postId", -1)
-        val sharedPrefs = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        initViews(view)
+
+        postId = arguments?.getLong("postId") ?: -1
+        val sharedPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         userId = sharedPrefs.getLong("userId", -1)
 
-        ivBack.setOnClickListener { onBackPressed() }
+        ivBack.setOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
         btnFollow.setOnClickListener { toggleFollow() }
 
         if (postId == null || postId == -1L) {
-            Toast.makeText(this, "Post not found", Toast.LENGTH_SHORT).show()
-            finish()
+            Toast.makeText(requireContext(), "Post not found", Toast.LENGTH_SHORT).show()
+            requireActivity().onBackPressedDispatcher.onBackPressed()
             return
         }
 
         loadPostDetails(postId!!)
+
         lifecycleScope.launch {
             try {
-                val latestPost = RetrofitClient.instance.getPostByIdWithUser(postId ?: return@launch, userId)
+                val latestPost = RetrofitClient.instance.getPostByIdWithUser(postId!!, userId)
                 val isSaved = latestPost.savedByCurrentUser
                 val newCount = latestPost.savedCount ?: 0
 
@@ -79,37 +87,35 @@ class PostDetailActivity : AppCompatActivity() {
                 tvSaveCount.text = newCount.toString()
                 ivSave.tag = isSaved
 
-                // **同步更新 post 数据**
-                post!!.likeCount = newCount
-                post!!.savedByCurrentUser = isSaved
-
+                post?.let {
+                    it.likeCount = newCount
+                    it.savedByCurrentUser = isSaved
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
-        ivSave.setOnClickListener { toggleSave(postId!!,userId) }
 
+        ivSave.setOnClickListener { toggleSave(postId!!, userId) }
         ivComment.setOnClickListener { submitComment() }
-
-
     }
 
-    private fun initViews() {
-        tvUsername = findViewById(R.id.tvUsername)
+    private fun initViews(view: View) {
+        tvUsername = view.findViewById(R.id.tvUsername)
         tvUsername.isEnabled = false
-        ivBack = findViewById(R.id.ivBack)
-        viewPagerImages = findViewById(R.id.viewPagerImages)
-        tvPostTitle = findViewById(R.id.tvPostTitle)
-        tvPostContent = findViewById(R.id.tvPostContent)
-        tvPostInfo = findViewById(R.id.tvPostInfo)
-        btnFollow = findViewById(R.id.btnFollow)
-        rvComments = findViewById(R.id.rvComments)
-        etComment = findViewById(R.id.etComment)
-        ivComment = findViewById(R.id.ivComment)
-        ivSave = findViewById(R.id.ivSave)
-        tvSaveCount = findViewById(R.id.tvSaveCount)
+        ivBack = view.findViewById(R.id.ivBack)
+        viewPagerImages = view.findViewById(R.id.viewPagerImages)
+        tvPostTitle = view.findViewById(R.id.tvPostTitle)
+        tvPostContent = view.findViewById(R.id.tvPostContent)
+        tvPostInfo = view.findViewById(R.id.tvPostInfo)
+        btnFollow = view.findViewById(R.id.btnFollow)
+        rvComments = view.findViewById(R.id.rvComments)
+        etComment = view.findViewById(R.id.etComment)
+        ivComment = view.findViewById(R.id.ivComment)
+        ivSave = view.findViewById(R.id.ivSave)
+        tvSaveCount = view.findViewById(R.id.tvSaveCount)
 
-        rvComments.layoutManager = LinearLayoutManager(this)
+        rvComments.layoutManager = LinearLayoutManager(requireContext())
         rvComments.adapter = commentAdapter
     }
 
@@ -122,7 +128,7 @@ class PostDetailActivity : AppCompatActivity() {
                 tvUsername.isEnabled = true
             } catch (e: Exception) {
                 e.printStackTrace()
-                Toast.makeText(this@PostDetailActivity, "loadPostDetails failed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "loadPostDetails failed", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -152,61 +158,47 @@ class PostDetailActivity : AppCompatActivity() {
         }
         tvSaveCount.text = newCount.toString()
         ivSave.tag = isSaved
+
         post.likeCount = newCount
         post.savedByCurrentUser = isSaved
 
         tvUsername.setOnClickListener {
             val viewedUserId = post.user?.id
             if (viewedUserId == null) {
-                Toast.makeText(this, "User ID is null", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "User ID is null", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            if (viewedUserId == userId) {
-                val profileFragment = ProfileFragment()
-                supportFragmentManager.beginTransaction()
-                    .replace(android.R.id.content, profileFragment)
-                    .addToBackStack(null)
-                    .commit()
+            val fragment = if (viewedUserId == userId) {
+                ProfileFragment()
             } else {
-                val othersProfileFragment = OthersProfileFragment.newInstance(viewedUserId)
-                supportFragmentManager.beginTransaction()
-                    .replace(android.R.id.content, othersProfileFragment)
-                    .addToBackStack(null)
-                    .commit()
+                OthersProfileFragment.newInstance(viewedUserId)
             }
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit()
         }
     }
 
     private fun toggleFollow() {
-        // 关注逻辑
-        Toast.makeText(this, "Follow clicked", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), "Follow clicked", Toast.LENGTH_SHORT).show()
     }
 
     private fun toggleSave(postId: Long, userId: Long) {
         lifecycleScope.launch {
             try {
-                val updatedPost = RetrofitClient.instance.toggleSave(
-                    postId = postId ?: return@launch,
-                    userId = userId
-                )
-
+                val updatedPost = RetrofitClient.instance.toggleSave(postId, userId)
                 val newCount = updatedPost.savedCount ?: 0
-
                 val isSaved = updatedPost.savedByCurrentUser
-
                 updateSaveUI(isSaved, newCount)
-
-                post!!.savedCount = newCount
-
+                post?.savedCount = newCount
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
-
     }
 
     private fun updateSaveUI(isSaved: Boolean, newCount: Int) {
-
         if (isSaved) {
             ivSave.setImageResource(R.drawable.ic_save_filled)
         } else {
@@ -217,15 +209,14 @@ class PostDetailActivity : AppCompatActivity() {
     }
 
     private fun submitComment() {
-
         val commentText = etComment.text.toString().trim()
 
         if (commentText.isEmpty()) {
-            Toast.makeText(this, "can't submit empty comment", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Can't submit empty comment", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val sharedPrefs = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val sharedPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         val userId = sharedPrefs.getLong("userId", -1)
 
         val comment = CreateCommentDTO(
@@ -237,13 +228,11 @@ class PostDetailActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val createdComment = RetrofitClient.instance.createComment(comment)
-                Toast.makeText(this@PostDetailActivity, "UPLOAD SUCCESSFUL！ID=${createdComment}", Toast.LENGTH_SHORT).show()
-                finish()
+                Toast.makeText(requireContext(), "UPLOAD SUCCESSFUL！ID=${createdComment}", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 e.printStackTrace()
-                Toast.makeText(this@PostDetailActivity, "FAILED: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "FAILED: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
 }
-

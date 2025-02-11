@@ -109,6 +109,7 @@ class MapFragment : Fragment() {
             showBottomSheetDialog(marker)
             true
         }
+        loadFishingHotspots()
     }
     private fun requestLocationPermission() {
         requestPermissions(
@@ -181,8 +182,6 @@ class MapFragment : Fragment() {
             Places.initialize(requireContext(), "AIzaSyCrE4w3aiRcrG6-DcuaaN-dMGcrZBeid80")
         }
         placesClient = Places.createClient(requireContext())
-
-        // ✅ 初始化位置服务
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
         map = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
@@ -193,14 +192,10 @@ class MapFragment : Fragment() {
         requestQueue = Volley.newRequestQueue(requireContext())
 
         preloadWeatherForecast()
-
-        // ✅ 设置搜索框支持自动补全
         setupAutoCompleteSearch()
 
         return rootView
     }
-
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -214,21 +209,13 @@ class MapFragment : Fragment() {
             val query = searchBox.text.toString().trim()
             searchLocation(query)
         }
-        btnMarkFishing.setOnClickListener {
-            if (fishingHotspotsData == null) {
-                Log.d("MapFragment", "Fetching fishing hotspots after button click.")
-                fetchFishingHotspots()  // 🚀 只有在按钮点击后才加载钓鱼点
-            } else {
-                Log.d("MapFragment", "Fishing hotspots already loaded, showing markers.")
-                addMarkersToMap(fishingHotspotsData!!)
-            }
+        btnMarkFishing.setOnClickListener{
+            fishingHotspotsData?.let { it1 -> addMarkersToMap(it1) }
         }
         btnShowHotspots.setOnClickListener {
             fetchSavedSpots(userId)
         }
     }
-
-
 
     private fun showBottomSheetDialog(marker: Marker) {
         val bottomSheetDialog = BottomSheetDialog(requireContext())
@@ -246,7 +233,7 @@ class MapFragment : Fragment() {
         val locationId = markers.entries.find { it.value == marker }?.key ?: -1L
         if (locationId != -1L) {
             Log.d("MapFragment", "Checking if user $userId has saved location $locationId")
-            val isLocationSaved = checkSavedLocations(locationId) { isSaved ->
+            checkSavedLocations(locationId) { isSaved ->
                 if (isSaved) {
                     saveButton.text = "Saved"
                     saveButton.setBackgroundColor(Color.parseColor("#9E9E9E"))
@@ -336,7 +323,6 @@ class MapFragment : Fragment() {
     }
 
     private fun fetchFishingHotspots() {
-        // If hotspots were not preloaded, fetch them.
         if (fishingHotspotsData != null) {
             addMarkersToMap(fishingHotspotsData!!)
             return
@@ -366,7 +352,7 @@ class MapFragment : Fragment() {
     }
 
     private fun addMarkersToMap(locations: List<FishingLocation>) {
-        googleMap.clear()  // ✅ 先清空旧的 Marker
+        googleMap.clear()
         markers.clear()
 
         if (locations.isNotEmpty()) {
@@ -378,10 +364,10 @@ class MapFragment : Fragment() {
                 if (marker != null) {
                     markers[location.id] = marker
                 }
+                fetchWeatherForecast(location.locationName, position)
             }
         }
     }
-
 
     private fun fetchWeatherForecast(locationName: String, position: LatLng) {
         val forecast = if (weatherForecastResponse != null) {
@@ -443,7 +429,6 @@ class MapFragment : Fragment() {
 
         lifecycleScope.launch {
             try {
-                // 🚀 1️⃣ 先检查 query 是否是钓鱼点
                 val fishingSpots = RetrofitClient.instance.searchFishingSpots(query)
                 if (fishingSpots.isNotEmpty()) {
                     val firstSpot = fishingSpots[0]
@@ -452,10 +437,9 @@ class MapFragment : Fragment() {
                     googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12f))
                     fetchNearbyFishingSpots(firstSpot.latitude, firstSpot.longitude)
 
-                    return@launch  // ✅ 退出协程，不执行后续的 Geocoder 代码
+                    return@launch
                 }
 
-                // 🚀 2️⃣ 如果 `query` 不是钓鱼点，就用 Geocoder 解析地址
                 val geocoder = Geocoder(requireContext(), Locale.getDefault())
                 val addresses = geocoder.getFromLocationName(query, 1)
 
@@ -467,13 +451,8 @@ class MapFragment : Fragment() {
                 val location = addresses[0]
                 val searchedLatLng = LatLng(location.latitude, location.longitude)
 
-                // ✅ 移动到用户搜索的地点
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(searchedLatLng, 12f))
-
-                // ✅ 添加 Marker 标记搜索地点
                 googleMap.addMarker(MarkerOptions().position(searchedLatLng).title(query))
-
-                // 🚀 3️⃣ 显示搜索地点周围 5km 内的钓鱼点
                 fetchNearbyFishingSpots(location.latitude, location.longitude)
 
             } catch (e: Exception) {
@@ -482,8 +461,6 @@ class MapFragment : Fragment() {
             }
         }
     }
-
-
 
     private fun fetchNearbyFishingSpots(latitude: Double, longtitude: Double) {
         lifecycleScope.launch {
@@ -498,24 +475,11 @@ class MapFragment : Fragment() {
     }
 
     private fun displayFishingSpotsOnMap(nearbySpots: List<FishingLocation>) {
-        googleMap.clear()  // ✅ 先清除旧的 Marker
-        markers.clear()
-
-        if (nearbySpots.isNotEmpty()) {
-            nearbySpots.forEach { location ->
-                val position = LatLng(location.latitude, location.longitude)
-                val marker = googleMap.addMarker(
-                    MarkerOptions()
-                        .position(position)
-                        .title(location.locationName)
-                )
-                if (marker != null) {
-                    markers[location.id] = marker
-                }
-            }
+        val nearbySpotIds = nearbySpots.map { it.id }.toSet()
+        for ((spotId, marker) in markers) {
+            marker?.isVisible = spotId in nearbySpotIds
         }
     }
-
 
     private fun fetchSavedSpots(userId: Long) {
         lifecycleScope.launch {
@@ -531,8 +495,8 @@ class MapFragment : Fragment() {
         }
     }
     private fun setupAutoCompleteSearch() {
-        searchBox.setAdapter(null) // 确保 searchBox 有 Adapter
-        searchBox.threshold = 1 // 只输入 1 个字符就开始显示建议
+        searchBox.setAdapter(null)
+        searchBox.threshold = 1
 
         searchBox.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {}
@@ -541,15 +505,15 @@ class MapFragment : Fragment() {
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 if (s != null && s.length > 2) {
-                    fetchAutoCompleteSuggestions(s.toString()) // 获取自动补全建议
+                    fetchAutoCompleteSuggestions(s.toString())
                 }
             }
         })
 
         searchBox.setOnItemClickListener { parent, _, position, _ ->
             val selectedItem = parent.getItemAtPosition(position).toString()
-            searchBox.setText(selectedItem) // 更新输入框
-            searchLocation(selectedItem) // 自动执行搜索
+            searchBox.setText(selectedItem)
+            searchLocation(selectedItem)
         }
     }
 
@@ -565,7 +529,7 @@ class MapFragment : Fragment() {
                 if (predictions.isNotEmpty()) {
                     searchAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, predictions)
                     searchBox.setAdapter(searchAdapter)
-                    searchAdapter.notifyDataSetChanged() // 确保刷新 Adapter
+                    searchAdapter.notifyDataSetChanged()
                 }
             }
             .addOnFailureListener { exception ->

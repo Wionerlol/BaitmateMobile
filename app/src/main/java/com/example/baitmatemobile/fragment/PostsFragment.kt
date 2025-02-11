@@ -20,8 +20,26 @@ import kotlinx.coroutines.launch
 class PostsFragment : Fragment() {
     private var _binding: FragmentPostsBinding? = null
     private val binding get() = _binding!!
+    private var userId: Long = -1
 
     private lateinit var postAdapter: PostAdapter
+
+    companion object {
+        private const val ARG_USER_ID = "userId"
+
+        fun newInstance(userId: Long): PostsFragment {
+            val fragment = PostsFragment()
+            val args = Bundle()
+            args.putLong(ARG_USER_ID, userId)
+            fragment.arguments = args
+            return fragment
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        userId = arguments?.getLong(ARG_USER_ID) ?: -1
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -33,18 +51,15 @@ class PostsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        val sharedPrefs = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val userId = sharedPrefs.getLong("userId", -1)
-        initRecyclerView(userId)
-        loadPosts(userId)
+        initRecyclerView()
+        loadPosts()
 
         binding.swipeRefreshLayout.setOnRefreshListener {
-            loadPosts(userId)
+            loadPosts()
         }
     }
 
-    private fun initRecyclerView(userId: Long) {
+    private fun initRecyclerView() {
         postAdapter = PostAdapter(userId) {
             clickedPost ->
             val intent = Intent(requireContext(), PostDetailActivity::class.java)
@@ -58,7 +73,7 @@ class PostsFragment : Fragment() {
         }
     }
 
-    private fun loadPosts(userId: Long) {
+    private fun loadPosts() {
         lifecycleScope.launch {
             try {
                 val posts = RetrofitClient.instance.getPostsByUserId(userId)
