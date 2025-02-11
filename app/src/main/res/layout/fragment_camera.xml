@@ -51,6 +51,7 @@
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:text="Predict"
+            android:enabled="false"
             app:iconGravity="textStart"
             app:iconPadding="8dp"
             app:strokeColor="@color/colorPrimary"/>
@@ -63,6 +64,7 @@
         android:layout_marginTop="16dp"
         android:text="Save Record"
         style="@style/Widget.MaterialComponents.Button"
+        android:enabled="false"
         app:backgroundTint="@color/colorPrimary"
         app:layout_constraintTop_toBottomOf="@id/buttonGroup"
         app:layout_constraintStart_toStartOf="parent"

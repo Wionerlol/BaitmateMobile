@@ -17,6 +17,6 @@
         android:layout_height="32dp"
         android:layout_margin="4dp"
         android:layout_gravity="top|right"
-        android:src="@drawable/ic_check"
+        android:src="@drawable/ic_selected"
         android:visibility="invisible"/>
 </FrameLayout>
