@@ -17,6 +17,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
 
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
@@ -51,7 +52,7 @@
         -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="${MAPS_API_KEY}" />
+            android:value="AIzaSyCrE4w3aiRcrG6-DcuaaN-dMGcrZBeid80" />
 
         <activity
             android:name=".activity.SplashActivity"

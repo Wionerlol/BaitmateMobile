@@ -95,4 +95,13 @@ dependencies {
     implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
     implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation ("androidx.fragment:fragment-ktx:1.6.2")
+    implementation ("com.google.android.libraries.places:places:3.3.0")
+    implementation ("com.google.android.gms:play-services-location:21.2.0")
+    implementation ("com.google.android.gms:play-services-maps:18.2.0")
+    implementation ("com.google.android.libraries.places:places:2.5.0")
+
+
+
+    // 如果使用 Volley
+    implementation ("com.android.volley:volley:1.2.1")
 }
