@@ -5,6 +5,7 @@ import com.example.baitmatemobile.model.CreateCommentDTO
 import com.example.baitmatemobile.model.CreatedPostDTO
 import com.example.baitmatemobile.activity.CatchDetailActivity
 import com.example.baitmatemobile.activity.UploadPostActivity
+import com.example.baitmatemobile.model.CatchRecord
 import com.example.baitmatemobile.model.CatchRecordDTO
 import com.example.baitmatemobile.model.FishingLocation
 import com.example.baitmatemobile.model.ForgotPasswordRequest
@@ -68,7 +69,6 @@ interface ApiService {
         @POST("/api/catch-records/add")
         fun saveCatchRecord(@Body catchRecord: CatchRecordDTO): Call<Void>
 
-
         @POST("logout")
         fun logout(@Header("Authorization") token: String): Call<ResponseBody>
 
@@ -110,13 +110,6 @@ interface ApiService {
                 @Query("userId") userId: Long
         ): Post
 
-        // ✅ 获取当前登录用户信息
-        @GET("user/profile")
-        fun getUserProfile(@Header("Authorization") token: String): Call<User>
-
-        @GET("user/{userId}/profile")
-        fun getUserProfileById(@Header("Authorization") token: String, @Path("userId") userId: Long): Call<User>
-
         @Multipart
         @POST("http://10.0.2.2:5000/api/image/predict")
         suspend fun uploadImage(
@@ -136,7 +129,7 @@ interface ApiService {
         ): Post
 
         @GET("catch-records/user/{userId}")
-        suspend fun getCatchRecordsByUserId(@Path ("userId") userId: Long): List<CatchRecordDTO>
+        suspend fun getCatchRecordsByUserId(@Path ("userId") userId: Long): List<CatchRecord>
 
         @POST("posts/comment")
         suspend fun createComment(@Body comment: CreateCommentDTO): Long
@@ -158,53 +151,6 @@ interface ApiService {
 
         @POST("user/{userId}/unfollow")
         suspend fun unfollowUser(@Path("userId") userId: Long, @Query("targetUserId") targetUserId: Long): Response<ResponseBody>
-        /*
-        @GET("user/{targetUserId}/isFollowing")
-        fun isFollowing(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<Boolean>
-
-        @POST("user/{targetUserId}/follow")
-        fun followUser(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<ResponseBody>
-
-        @POST("user/{targetUserId}/unfollow")
-        fun unfollowUser(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<ResponseBody>
-
-        // ✅ 获取某个用户的关注人数（可用于不同用户）
-        @GET("user/{userId}/following/count")
-        fun getFollowingCount(
-                @Header("Authorization") token: String,
-                @Path("userId") userId: Long
-        ): Call<Int>
-
-        // ✅ 获取某个用户的粉丝数（可用于不同用户）
-        @GET("user/{userId}/followers/count")
-        fun getFollowersCount(
-                @Header("Authorization") token: String,
-                @Path("userId") userId: Long
-        ): Call<Int>
-
-        // ✅ 获取某个用户关注的人列表
-        @GET("user/{userId}/following")
-        fun getFollowingList(
-                @Header("Authorization") token: String,
-                @Path("userId") userId: Long
-        ): Call<List<User>>
-
-        // ✅ 获取某个用户的粉丝列表
-        @GET("user/{userId}/followers")
-        fun getFollowersList(
-                @Header("Authorization") token: String,
-                @Path("userId") userId: Long
-        ): Call<List<User>>
-        */
-
-        @GET("user/{targetUserId}/isFollowing")
-        fun isFollowing(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<Boolean>
-
-        @POST("user/{targetUserId}/follow")
-        fun followUser(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<ResponseBody>
-
-        @POST("user/{targetUserId}/unfollow")
-        fun unfollowUser(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<ResponseBody>
 
         @POST("http://10.0.2.2:5000/api/image/check")
         suspend fun checkImage(

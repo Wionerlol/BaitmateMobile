@@ -77,6 +77,8 @@ class ProfileFragment : Fragment() {
             }
         }.attach()
 
+        viewPager.offscreenPageLimit = 1
+
         return view
     }
 
@@ -109,7 +111,7 @@ class ProfileFragment : Fragment() {
 
                          */
                 followersCountTextView.text = "$followersCount Followers"
-                followingCountTextView.text = "$followingCount Followers"
+                followingCountTextView.text = "$followingCount Following"
             }
         }
         btnLogout.setOnClickListener { logout() }

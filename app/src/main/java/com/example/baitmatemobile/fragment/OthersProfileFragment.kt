@@ -94,6 +94,8 @@ class OthersProfileFragment : Fragment() {
             }
         }.attach()
 
+        viewPager.offscreenPageLimit = 1
+
         return view
     }
 

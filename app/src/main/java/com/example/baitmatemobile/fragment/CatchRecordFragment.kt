@@ -1,6 +1,7 @@
 package com.example.baitmatemobile.fragment
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -56,15 +57,18 @@ class CatchRecordFragment : Fragment() {
 
     private fun initRecyclerView() {
         binding.userCatchRecords.layoutManager = LinearLayoutManager(requireContext())
+        binding.userCatchRecords.adapter = CatchRecordAdapter(emptyList())
     }
 
     private fun loadCatchRecords() {
         lifecycleScope.launch {
             try {
                 val catchRecords = RetrofitClient.instance.getCatchRecordsByUserId(userId)
+                Log.d("CatchRecordFragment", "Received response $catchRecords")
                 binding.userCatchRecords.adapter = CatchRecordAdapter(catchRecords)
             } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Load posts failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e("CatchRecordFragment","Load catch records failed: ${e.message}")
+                Toast.makeText(requireContext(), "Load catch records failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
             binding.swipeRefreshLayout.isRefreshing = false
         }
