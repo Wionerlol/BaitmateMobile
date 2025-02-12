@@ -50,3 +50,5 @@ data class CreateCommentDTO(
     val userId: Long?
 )
 
+data class PostReportRequest(val postId: Long)
+

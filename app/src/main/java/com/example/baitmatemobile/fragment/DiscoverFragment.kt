@@ -64,8 +64,8 @@ class DiscoverFragment : Fragment() {
             postDetailFragment.arguments = args
 
             requireActivity().supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, postDetailFragment)
-                .addToBackStack(null)
+                .add(R.id.fragment_container, postDetailFragment)
+                .addToBackStack("discover_to_post_detail")
                 .commit()
         }
 
@@ -80,7 +80,8 @@ class DiscoverFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 val posts = RetrofitClient.instance.getAllPosts()
-                postAdapter.submitList(posts)
+                val filteredPosts = posts.filter { it.postStatus == "approved" || it.postStatus == "petition" }
+                postAdapter.submitList(filteredPosts)
 
                 binding.swipeRefreshLayout.isRefreshing = false
             } catch (e: Exception) {

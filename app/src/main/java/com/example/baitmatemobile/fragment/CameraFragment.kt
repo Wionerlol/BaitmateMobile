@@ -67,6 +67,7 @@ class CameraFragment : Fragment() {
             if (result.resultCode == Activity.RESULT_OK) {
                 imageBitmap = result.data?.extras?.get("data") as Bitmap
                 imageView.setImageBitmap(imageBitmap)
+                predictButton.isEnabled = true
             }
         }
 
@@ -92,6 +93,7 @@ class CameraFragment : Fragment() {
             }
             view.setBackgroundColor(Color.LTGRAY)
             println("Selected item: ${selectedItem.fishName}, Confidence: ${selectedItem.confidence}, Image URL: ${selectedItem.imageUrl}")
+            saveButton.isEnabled = true
         }
 
         return view
@@ -166,7 +168,7 @@ class CameraFragment : Fragment() {
         if(resultListView.visibility == View.VISIBLE){
             resultListView.visibility = View.GONE
         }
-
+        saveButton.isEnabled = false
         progressBar.visibility = View.VISIBLE
         predictButton.isEnabled = false
 
@@ -209,11 +211,4 @@ class CameraFragment : Fragment() {
             }
         }
     }
-
-    data class FishResultResponse(
-        val fishId: Long,
-        val fishName: String,
-        val confidence: Int,
-        val imageUrl: String
-    )
 }

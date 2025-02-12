@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -16,11 +17,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.baitmatemobile.R
 import com.example.baitmatemobile.adapter.ChooseImagesAdapter
 import com.example.baitmatemobile.adapter.ImageItem
+import com.google.android.material.button.MaterialButton
 
 class ChooseImagesActivity : AppCompatActivity() {
 
     private lateinit var rvImages: RecyclerView
-    private lateinit var btnNext: Button
+    private lateinit var btnNext: MaterialButton
+    private lateinit var btnBack: MaterialButton
 
     private val READ_EXTERNAL_STORAGE_REQUEST_CODE = 100
 
@@ -33,6 +36,11 @@ class ChooseImagesActivity : AppCompatActivity() {
 
         rvImages = findViewById(R.id.rvImages)
         btnNext = findViewById(R.id.btnNext)
+        btnBack = findViewById(R.id.btnBack)
+
+        btnBack.setOnClickListener {
+            finish()
+        }
 
         val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             Manifest.permission.READ_MEDIA_IMAGES
@@ -62,7 +70,10 @@ class ChooseImagesActivity : AppCompatActivity() {
                 // 传递选中的图片URI
                 intent.putParcelableArrayListExtra("selectedImages", ArrayList(selectedImages))
                 startActivity(intent)
-            }
+            } else {
+            Toast.makeText(this, "Please select at least one image", Toast.LENGTH_SHORT).show()
+        }
+
         }
     }
 
