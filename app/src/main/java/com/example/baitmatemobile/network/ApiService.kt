@@ -8,6 +8,7 @@ import com.example.baitmatemobile.activity.UploadPostActivity
 import com.example.baitmatemobile.model.CatchRecordDTO
 import com.example.baitmatemobile.model.FishingLocation
 import com.example.baitmatemobile.model.ForgotPasswordRequest
+import com.example.baitmatemobile.model.LocationDTO
 import com.example.baitmatemobile.model.LoginRequest
 import com.example.baitmatemobile.model.LoginResponse
 import com.example.baitmatemobile.model.RedDotResponse
@@ -123,7 +124,7 @@ interface ApiService {
         ): Response<List<List<String>>>
 
         @GET("locations")
-        suspend fun getLocations(): Response<List<CatchDetailActivity.LocationDTO>>
+        suspend fun getLocations(): Response<List<LocationDTO>>
 
         @POST("catch-records/add")
         suspend fun addCatchRecord(@Body record: CatchRecordDTO): Response<Unit>

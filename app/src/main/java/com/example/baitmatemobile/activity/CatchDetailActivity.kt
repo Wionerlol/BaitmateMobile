@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.baitmatemobile.model.CatchRecordDTO
+import com.example.baitmatemobile.model.LocationDTO
 import com.example.baitmatemobile.network.ApiService
 import com.example.baitmatemobile.network.RetrofitClient
 import com.google.android.material.button.MaterialButton
@@ -38,6 +39,7 @@ class CatchDetailActivity : AppCompatActivity() {
     private lateinit var remarkEditText: TextInputEditText
     private lateinit var submitButton: MaterialButton
     private lateinit var progressBar: ProgressBar
+    private lateinit var backButton: MaterialButton
 
     private lateinit var locations: List<LocationDTO>
     private var userLat: Double = 0.0
@@ -53,7 +55,7 @@ class CatchDetailActivity : AppCompatActivity() {
 
         initViews()
         loadIntentData()
-        setupSubmitButton()
+        setupButton()
         fetchLocations()
     }
 
@@ -64,6 +66,7 @@ class CatchDetailActivity : AppCompatActivity() {
         remarkEditText = findViewById(R.id.remarkEditText)
         submitButton = findViewById(R.id.submitButton)
         progressBar = findViewById(R.id.progressBar)
+        backButton = findViewById(R.id.btnBack)
     }
 
     private fun loadIntentData() {
@@ -71,7 +74,10 @@ class CatchDetailActivity : AppCompatActivity() {
         userLng = intent.getDoubleExtra("longitude", 0.0)
     }
 
-    private fun setupSubmitButton() {
+    private fun setupButton() {
+        backButton.setOnClickListener{
+            finish()
+        }
         submitButton.setOnClickListener {
             if (validateInput()) {
                 submitCatchRecord()
@@ -87,7 +93,7 @@ class CatchDetailActivity : AppCompatActivity() {
             }
 
             if (response.isSuccessful) {
-                response.body()?.let { locations ->
+                response.body()?.let { locations: List<LocationDTO> ->
                     val sorted = locations.sortedBy {
                         calculateDistance(userLat, userLng, it.latitude, it.longitude)
                     }
@@ -195,12 +201,5 @@ class CatchDetailActivity : AppCompatActivity() {
     private fun showSuccess(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
-
-    data class LocationDTO(
-        @SerializedName("id") val id: Long,
-        @SerializedName("locationName") val locationName: String,
-        @SerializedName("latitude") val latitude: Double,
-        @SerializedName("longitude") val longitude: Double
-    )
 
 }
