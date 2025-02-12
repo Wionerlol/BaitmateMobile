@@ -52,9 +52,21 @@ class DiscoverFragment : Fragment() {
     private fun initRecyclerView(userId: Long) {
         postAdapter = PostAdapter(userId) { clickedPost ->
             // 点击图片或者整块区域进入详情
+            /*
             val intent = Intent(requireContext(), PostDetailActivity::class.java)
             intent.putExtra("postId", clickedPost.id)
             startActivity(intent)
+            */
+            val postDetailFragment = PostDetailFragment()
+            val args = Bundle().apply {
+                clickedPost.id?.let { putLong("postId", it) } // Pass the clickedPost.id
+            }
+            postDetailFragment.arguments = args
+
+            requireActivity().supportFragmentManager.beginTransaction()
+                .add(R.id.fragment_container, postDetailFragment)
+                .addToBackStack("discover_to_post_detail")
+                .commit()
         }
 
         binding.rvPosts.apply {
@@ -68,7 +80,8 @@ class DiscoverFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 val posts = RetrofitClient.instance.getAllPosts()
-                postAdapter.submitList(posts)
+                val filteredPosts = posts.filter { it.postStatus == "approved" || it.postStatus == "petition" }
+                postAdapter.submitList(filteredPosts)
 
                 binding.swipeRefreshLayout.isRefreshing = false
             } catch (e: Exception) {

@@ -37,9 +37,11 @@ class HomeFragment : Fragment() {
         }
 
        binding.btnPost.setOnClickListener {
-            // 跳转到选择图片Activity
-            val intent = Intent(requireContext(), ChooseImagesActivity::class.java)
-            startActivity(intent)
+           binding.btnPost.setOnClickListener {
+               // 跳转到选择图片Activity
+               val intent = Intent(requireContext(), ChooseImagesActivity::class.java)
+               startActivity(intent)
+           }
         }
 
         return binding.root

@@ -111,7 +111,7 @@
                         android:layout_marginTop="10dp">
 
                         <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnFollow"
+                            android:id="@+id/btnAction"
                             style="?attr/materialButtonOutlinedStyle"
                             android:layout_width="140dp"
                             android:layout_height="48dp"

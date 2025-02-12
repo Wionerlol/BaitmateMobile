@@ -6,12 +6,12 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.baitmatemobile.fragment.CatchRecordFragment
 import com.example.baitmatemobile.fragment.PostsFragment
 
-class ProfileTabsAdapter(fragment: FragmentActivity) : FragmentStateAdapter(fragment){
+class ProfileTabsAdapter(fragment: FragmentActivity, private val userId: Long) : FragmentStateAdapter(fragment){
     override fun getItemCount(): Int =2
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
-            0 -> PostsFragment()
+            0 -> PostsFragment.newInstance(userId)
             1 -> CatchRecordFragment()
             else -> throw IllegalStateException("Invalid tab position")
         }
