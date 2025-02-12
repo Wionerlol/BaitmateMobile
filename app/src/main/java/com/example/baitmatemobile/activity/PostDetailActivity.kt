@@ -164,13 +164,13 @@ class PostDetailActivity : AppCompatActivity() {
             if (viewedUserId == userId) {
                 val profileFragment = ProfileFragment()
                 supportFragmentManager.beginTransaction()
-                    .replace(android.R.id.content, profileFragment)
+                    .add(android.R.id.content, profileFragment)
                     .addToBackStack(null)
                     .commit()
             } else {
                 val othersProfileFragment = OthersProfileFragment.newInstance(viewedUserId)
                 supportFragmentManager.beginTransaction()
-                    .replace(android.R.id.content, othersProfileFragment)
+                    .add(android.R.id.content, othersProfileFragment)
                     .addToBackStack(null)
                     .commit()
             }

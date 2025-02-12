@@ -144,19 +144,19 @@ interface ApiService {
         suspend fun getPostsByUserId(@Path("userId") userId: Long): List<Post>
 
         @GET("user/{userId}")
-        fun getUserDetails(@Path ("userId") userId: Long): Call<User>
+        suspend fun getUserDetails(@Path ("userId") userId: Long): Response<User>
 
         @GET("user/{userId}/followers")
-        fun getFollowers(@Path("userId") userId: Long): Call<List<User>>
+        suspend fun getFollowers(@Path("userId") userId: Long): List<User>
 
         @GET("user/{userId}/following")
-        fun getFollowing(@Path("userId") userId: Long): Call<List<User>>
+        suspend fun getFollowing(@Path("userId") userId: Long): List<User>
 
         @POST("user/{userId}/follow")
-        fun followUser(@Path("userId") userId: Long, @Query("targetUserId") targetUserId: Long): Call<ResponseBody>
+        suspend fun followUser(@Path("userId") userId: Long, @Query("targetUserId") targetUserId: Long): Response<ResponseBody>
 
         @POST("user/{userId}/unfollow")
-        fun unfollowUser(@Path("userId") userId: Long, @Query("targetUserId") targetUserId: Long): Call<ResponseBody>
+        suspend fun unfollowUser(@Path("userId") userId: Long, @Query("targetUserId") targetUserId: Long): Response<ResponseBody>
         /*
         @GET("user/{targetUserId}/isFollowing")
         fun isFollowing(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<Boolean>

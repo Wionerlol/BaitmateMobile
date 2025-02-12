@@ -12,7 +12,7 @@ class ProfileTabsAdapter(fragment: FragmentActivity, private val userId: Long) :
     override fun createFragment(position: Int): Fragment {
         return when (position) {
             0 -> PostsFragment.newInstance(userId)
-            1 -> CatchRecordFragment()
+            1 -> CatchRecordFragment.newInstance(userId)
             else -> throw IllegalStateException("Invalid tab position")
         }
     }

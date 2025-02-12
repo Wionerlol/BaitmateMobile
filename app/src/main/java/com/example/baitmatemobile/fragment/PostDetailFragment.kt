@@ -2,6 +2,7 @@ package com.example.baitmatemobile.fragment
 
 import android.os.Bundle
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -178,6 +179,7 @@ class PostDetailFragment : Fragment() {
 
         tvUsername.setOnClickListener {
             val viewedUserId = post.user?.id
+            Log.d("Profile Fragment", "${post.user?.id}")
             if (viewedUserId == null) {
                 Toast.makeText(requireContext(), "User ID is null", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
