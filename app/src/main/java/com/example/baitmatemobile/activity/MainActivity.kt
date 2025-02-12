@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
     private val homeFragment = HomeFragment()
     private val mapFragment = MapFragment()
     private val cameraFragment = CameraFragment()
-    private val messagesFragment = MessagesFragment()
+    private val messagesFragment = MessageFragment()
     private val profileFragment = ProfileFragment()
 
     override fun onCreate(savedInstanceState: Bundle?) {

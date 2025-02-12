@@ -80,7 +80,8 @@ class DiscoverFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 val posts = RetrofitClient.instance.getAllPosts()
-                postAdapter.submitList(posts)
+                val filteredPosts = posts.filter { it.postStatus == "approved" || it.postStatus == "petition" }
+                postAdapter.submitList(filteredPosts)
 
                 binding.swipeRefreshLayout.isRefreshing = false
             } catch (e: Exception) {

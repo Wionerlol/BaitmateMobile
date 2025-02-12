@@ -10,7 +10,9 @@ import com.example.baitmatemobile.model.FishingLocation
 import com.example.baitmatemobile.model.ForgotPasswordRequest
 import com.example.baitmatemobile.model.LoginRequest
 import com.example.baitmatemobile.model.LoginResponse
+import com.example.baitmatemobile.model.RedDotResponse
 import com.example.baitmatemobile.model.Post
+import com.example.baitmatemobile.model.PostReportRequest
 import com.example.baitmatemobile.model.RegisterRequest
 import com.example.baitmatemobile.model.ResetPasswordRequest
 import com.example.baitmatemobile.model.User
@@ -92,6 +94,9 @@ interface ApiService {
         @GET("posts/{id}/by-user")
         suspend fun getPostByIdWithUser(@Path("id") id: Long,
                                 @Query("userId") userId: Long): Post
+
+        @GET("users/{id}")
+        suspend fun getUserById(@Path("id") id: Long): User
 
         // 创建 Post
         @POST("posts/create")
@@ -191,7 +196,6 @@ interface ApiService {
         ): Call<List<User>>
         */
 
-
         @GET("user/{targetUserId}/isFollowing")
         fun isFollowing(@Header("Authorization") token: String, @Path("targetUserId") targetUserId: Long): Call<Boolean>
 
@@ -205,4 +209,11 @@ interface ApiService {
         suspend fun checkImage(
                 @Body image: UploadPostActivity.ImageCheckRequest
         ): Response<UploadPostActivity.ImageCheckResponse>
+
+        @GET("redDots/{userId}")
+        suspend fun getRedDots(@Path("userId") userId: Long): List<RedDotResponse>
+
+        @POST("posts/report")
+        suspend fun reportPost(@Body request: PostReportRequest)
+
 }

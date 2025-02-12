@@ -21,6 +21,7 @@ import com.example.baitmatemobile.adapter.ImagePagerAdapter
 import com.example.baitmatemobile.databinding.FragmentPostDetailBinding
 import com.example.baitmatemobile.model.CreateCommentDTO
 import com.example.baitmatemobile.model.Post
+import com.example.baitmatemobile.model.PostReportRequest
 import com.example.baitmatemobile.network.RetrofitClient
 import kotlinx.coroutines.launch
 
@@ -38,6 +39,7 @@ class PostDetailFragment : Fragment() {
     private lateinit var ivComment: ImageView
     private lateinit var ivSave: ImageView
     private lateinit var tvSaveCount: TextView
+    private lateinit var ivReport: ImageView
 
     private var postId: Long? = null
     private var userId: Long = -1
@@ -102,6 +104,20 @@ class PostDetailFragment : Fragment() {
 
         ivSave.setOnClickListener { toggleSave(postId!!, userId) }
         ivComment.setOnClickListener { submitComment() }
+        ivReport.setOnClickListener { report(postId!!)}
+    }
+
+    private fun report(postId: Long) {
+        lifecycleScope.launch {
+            try {
+                val request = PostReportRequest(postId)
+                RetrofitClient.instance.reportPost(request)
+                Toast.makeText(requireContext(), "REPORT SUCCESSFUL！", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(requireContext(), "report failed", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun initViews(view: View) {
@@ -118,6 +134,7 @@ class PostDetailFragment : Fragment() {
         ivComment = view.findViewById(R.id.ivComment)
         ivSave = view.findViewById(R.id.ivSave)
         tvSaveCount = view.findViewById(R.id.tvSaveCount)
+        ivReport = view.findViewById(R.id.ivReport)
 
         rvComments.layoutManager = LinearLayoutManager(requireContext())
         rvComments.adapter = commentAdapter
@@ -233,6 +250,10 @@ class PostDetailFragment : Fragment() {
             try {
                 val createdComment = RetrofitClient.instance.createComment(comment)
                 Toast.makeText(requireContext(), "UPLOAD SUCCESSFUL！ID=${createdComment}", Toast.LENGTH_SHORT).show()
+                requireActivity().supportFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, DiscoverFragment())
+                    .addToBackStack(null)
+                    .commit()
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(requireContext(), "FAILED: ${e.message}", Toast.LENGTH_SHORT).show()

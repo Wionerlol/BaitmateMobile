@@ -49,6 +49,13 @@
                 android:text="Follow"
                 android:textSize="14sp"
                 android:paddingHorizontal="12dp"/>
+
+            <ImageView
+                android:id="@+id/ivReport"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:src="@drawable/ic_report"
+                tools:ignore="ContentDescription" />
         </LinearLayout>
 
         <!-- 可滑动内容 -->
