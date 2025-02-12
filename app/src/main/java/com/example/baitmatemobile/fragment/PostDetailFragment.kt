@@ -28,7 +28,6 @@ import kotlinx.coroutines.launch
 class PostDetailFragment : Fragment() {
 
     private lateinit var tvUsername: TextView
-    private lateinit var ivBack: ImageView
     private lateinit var viewPagerImages: ViewPager2
     private lateinit var tvPostTitle: TextView
     private lateinit var tvPostContent: TextView
@@ -64,11 +63,6 @@ class PostDetailFragment : Fragment() {
         val sharedPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         userId = sharedPrefs.getLong("userId", -1)
 
-        ivBack.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, HomeFragment())
-                .addToBackStack(null)
-                .commit() }
         btnFollow.setOnClickListener { toggleFollow() }
 
         if (postId == null || postId == -1L) {
@@ -123,7 +117,6 @@ class PostDetailFragment : Fragment() {
     private fun initViews(view: View) {
         tvUsername = view.findViewById(R.id.tvUsername)
         tvUsername.isEnabled = false
-        ivBack = view.findViewById(R.id.ivBack)
         viewPagerImages = view.findViewById(R.id.viewPagerImages)
         tvPostTitle = view.findViewById(R.id.tvPostTitle)
         tvPostContent = view.findViewById(R.id.tvPostContent)
@@ -189,15 +182,17 @@ class PostDetailFragment : Fragment() {
                 Toast.makeText(requireContext(), "User ID is null", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val fragment = if (viewedUserId == userId) {
-                ProfileFragment()
+            if (viewedUserId == userId) {
+                parentFragmentManager.beginTransaction()
+                    .add(R.id.fragment_container, ProfileFragment())
+                    .addToBackStack("post_detail_to_profile")
+                    .commit()
             } else {
-                OthersProfileFragment.newInstance(viewedUserId)
+                parentFragmentManager.beginTransaction()
+                    .add(R.id.fragment_container, OthersProfileFragment.newInstance(viewedUserId))
+                    .addToBackStack("post_detail_to_profile")
+                    .commit()
             }
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, fragment)
-                .addToBackStack(null)
-                .commit()
         }
     }
 
@@ -250,10 +245,8 @@ class PostDetailFragment : Fragment() {
             try {
                 val createdComment = RetrofitClient.instance.createComment(comment)
                 Toast.makeText(requireContext(), "UPLOAD SUCCESSFUL！ID=${createdComment}", Toast.LENGTH_SHORT).show()
-                requireActivity().supportFragmentManager.beginTransaction()
-                    .replace(R.id.fragment_container, DiscoverFragment())
-                    .addToBackStack(null)
-                    .commit()
+                postId?.let { loadPostDetails(it) }
+
             } catch (e: Exception) {
                 e.printStackTrace()
                 Toast.makeText(requireContext(), "FAILED: ${e.message}", Toast.LENGTH_SHORT).show()

@@ -64,8 +64,8 @@ class DiscoverFragment : Fragment() {
             postDetailFragment.arguments = args
 
             requireActivity().supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, postDetailFragment)
-                .addToBackStack(null)
+                .add(R.id.fragment_container, postDetailFragment)
+                .addToBackStack("discover_to_post_detail")
                 .commit()
         }
 

@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity() {
 
         // 绑定底部导航栏
         binding.bottomNav.setOnItemSelectedListener { item ->
+            supportFragmentManager.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
             when (item.itemId) {
                 R.id.nav_home -> showFragment(homeFragment)
                 R.id.nav_map -> showFragment(mapFragment)
@@ -82,4 +83,14 @@ class MainActivity : AppCompatActivity() {
             show(fragment)
         }.commit()
     }
+    override fun onBackPressed() {
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            // Pop the top fragment in the backstack
+            supportFragmentManager.popBackStack()
+        } else {
+            // If no fragments in backstack, perform default back behavior
+            super.onBackPressed()
+        }
+    }
+
 }
