@@ -99,39 +99,38 @@ class OthersProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        getUserDetails(viewedUserId)
-        getFollowersCount(viewedUserId)
-        getFollowingCount(viewedUserId)
-        checkFollowingStatus(userId, viewedUserId)
+        CoroutineScope(Dispatchers.IO).launch {
+            val userDetailsDeferred = async { getUserDetails(viewedUserId) }
+            val followersCountDeferred = async { getFollowersCount(viewedUserId) }
+            val followingCountdeferred = async { getFollowingCount(viewedUserId)}
+
+            // Wait for both tasks to complete
+            val user = userDetailsDeferred.await()
+            val followersCount = followersCountDeferred.await()
+            val followingCount = followingCountdeferred.await()
+
+            withContext(Dispatchers.Main) {
+                userNameTextView.text = user?.username ?: "Unknown User"
+                userInfoTextView.text = user?.email ?: "No email provided"
+                followersCountTextView.text = "$followersCount Followers"
+                followingCountTextView.text = "$followingCount Followers"
+            }
+            checkFollowingStatus(userId, viewedUserId)
+        }
     }
 
-    private fun getUserDetails(userId: Long) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = RetrofitClient.instance.getUserDetails(userId).execute()
-                if (response.isSuccessful) {
-                    val user: User? = response.body()
-                    withContext(Dispatchers.Main) {
-                        userNameTextView.text = "${user?.username}"
-                        userInfoTextView.text = "${user?.email}"
-                        user?.profileImage?.let { byteArray ->
-                            val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-                            profileImage.setImageBitmap(bitmap)
-                        } ?: run {
-                            // Optionally set a placeholder image if the profileImage is null
-                            profileImage.setImageResource(R.drawable.ic_touxiang)
-                        }
-
-                    }
-                } else {
-                    Log.e(
-                        "ProfileFragment",
-                        "Failed to fetch user: ${response.errorBody()?.string()}"
-                    )
-                }
-            } catch (e: Exception) {
-                Log.e("ProfileFragment", "Network error while fetching user", e)
+    private suspend fun getUserDetails(userId: Long): User? {
+        return try {
+            val response = RetrofitClient.instance.getUserDetails(userId)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                Log.e("ProfileFragment", "Failed to fetch user: ${response.errorBody()?.string()}")
+                null
             }
+        } catch (e: Exception) {
+            Log.e("ProfileFragment", "Network error while fetching user", e)
+            null
         }
     }
 
