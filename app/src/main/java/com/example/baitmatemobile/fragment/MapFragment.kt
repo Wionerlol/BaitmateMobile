@@ -533,17 +533,22 @@ class MapFragment : Fragment() {
         }
     }
 
-    private fun displayFishingSpotsOnMap(nearbySpots: List<FishingLocation>) {
-        googleMap.clear()  // ✅ 先清除旧的 Marker
+    private fun displayFishingSpotsOnMap(nearbySpots: List<FishingLocation>, isSavedSpots: Boolean = false) {
+        googleMap.clear()  // ✅ 先清空旧的 Marker
         markers.clear()
 
         if (nearbySpots.isNotEmpty()) {
             nearbySpots.forEach { location ->
                 val position = LatLng(location.latitude, location.longitude)
+
+                // ✅ 设定不同的颜色
+                val markerColor = if (isSavedSpots) BitmapDescriptorFactory.HUE_GREEN else BitmapDescriptorFactory.HUE_RED
+
                 val marker = googleMap.addMarker(
                     MarkerOptions()
                         .position(position)
                         .title(location.locationName)
+                        .icon(BitmapDescriptorFactory.defaultMarker(markerColor)) // 设置颜色
                 )
                 if (marker != null) {
                     markers[location.id] = marker
@@ -553,19 +558,24 @@ class MapFragment : Fragment() {
     }
 
 
+
     private fun fetchSavedSpots(userId: Long) {
         lifecycleScope.launch {
             try {
                 val savedSpots = RetrofitClient.instance.getSavedLocations(userId)
 
                 if (savedSpots != null) {
-                    displayFishingSpotsOnMap(savedSpots)
-                } else Toast.makeText(requireContext(),"No saved locations", Toast.LENGTH_SHORT).show()
+                    // ✅ 这里的 isSavedSpots = true，标记为绿色
+                    displayFishingSpotsOnMap(savedSpots, isSavedSpots = true)
+                } else {
+                    Toast.makeText(requireContext(), "No saved locations", Toast.LENGTH_SHORT).show()
+                }
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "Unable to fetch: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
+
     private fun setupAutoCompleteSearch() {
         searchBox.setAdapter(null) // 确保 searchBox 有 Adapter
         searchBox.threshold = 1 // 只输入 1 个字符就开始显示建议
