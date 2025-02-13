@@ -2,6 +2,7 @@ package com.example.baitmatemobile.fragment
 
 import android.os.Bundle
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,7 +34,6 @@ class PostDetailFragment : Fragment() {
     private lateinit var tvPostContent: TextView
     private lateinit var rvComments: RecyclerView
     private lateinit var tvPostInfo: TextView
-    private lateinit var btnFollow: Button
     private lateinit var etComment: EditText
     private lateinit var ivComment: ImageView
     private lateinit var ivSave: ImageView
@@ -62,8 +62,6 @@ class PostDetailFragment : Fragment() {
         postId = arguments?.getLong("postId") ?: -1
         val sharedPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         userId = sharedPrefs.getLong("userId", -1)
-
-        btnFollow.setOnClickListener { toggleFollow() }
 
         if (postId == null || postId == -1L) {
             Toast.makeText(requireContext(), "Post not found", Toast.LENGTH_SHORT).show()
@@ -121,7 +119,6 @@ class PostDetailFragment : Fragment() {
         tvPostTitle = view.findViewById(R.id.tvPostTitle)
         tvPostContent = view.findViewById(R.id.tvPostContent)
         tvPostInfo = view.findViewById(R.id.tvPostInfo)
-        btnFollow = view.findViewById(R.id.btnFollow)
         rvComments = view.findViewById(R.id.rvComments)
         etComment = view.findViewById(R.id.etComment)
         ivComment = view.findViewById(R.id.ivComment)
@@ -178,6 +175,7 @@ class PostDetailFragment : Fragment() {
 
         tvUsername.setOnClickListener {
             val viewedUserId = post.user?.id
+            Log.d("Profile Fragment", "${post.user?.id}")
             if (viewedUserId == null) {
                 Toast.makeText(requireContext(), "User ID is null", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener

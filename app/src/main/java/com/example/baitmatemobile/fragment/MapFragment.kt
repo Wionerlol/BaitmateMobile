@@ -376,13 +376,13 @@ class MapFragment : Fragment() {
     }
 
     private fun fetchWeatherForecast(locationName: String, position: LatLng) {
-        val forecast = if (weatherForecastResponse != null) {
-            parseWeatherForecast(weatherForecastResponse!!, position)
+        if (weatherForecastResponse != null) {
+            val forecast = parseWeatherForecast(weatherForecastResponse!!, position)
+            val validPeriod = parseValidPeriod(weatherForecastResponse!!)
+            updateMarkerWithWeather(locationName, forecast, validPeriod)
         } else {
             "No forecast available"
         }
-        val validPeriod = parseValidPeriod(weatherForecastResponse!!)
-        updateMarkerWithWeather(locationName, forecast, validPeriod)
     }
 
     private fun parseWeatherForecast(response: JSONObject, position: LatLng): String {

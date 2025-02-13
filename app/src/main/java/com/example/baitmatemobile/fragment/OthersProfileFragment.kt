@@ -3,8 +3,10 @@ package com.example.baitmatemobile.fragment
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.os.Build.VERSION_CODES.BASE
 import android.os.Bundle
 import android.util.Log
+import android.util.Base64
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +15,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import com.example.baitmatemobile.R
 import com.example.baitmatemobile.activity.LoginActivity
@@ -22,7 +25,9 @@ import com.example.baitmatemobile.network.RetrofitClient
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
@@ -30,6 +35,7 @@ import org.checkerframework.checker.units.qual.t
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 class OthersProfileFragment : Fragment() {
     private lateinit var userNameTextView: TextView
@@ -88,120 +94,102 @@ class OthersProfileFragment : Fragment() {
             }
         }.attach()
 
+        viewPager.offscreenPageLimit = 1
+
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        getUserDetails(viewedUserId)
-        getFollowersCount(viewedUserId)
-        getFollowingCount(viewedUserId)
-        checkFollowingStatus(userId, viewedUserId)
+        CoroutineScope(Dispatchers.IO).launch {
+            val userDetailsDeferred = async { getUserDetails(viewedUserId) }
+            val followersCountDeferred = async { getFollowersCount(viewedUserId) }
+            val followingCountdeferred = async { getFollowingCount(viewedUserId)}
+
+            // Wait for both tasks to complete
+            val user = userDetailsDeferred.await()
+            val followersCount = followersCountDeferred.await()
+            val followingCount = followingCountdeferred.await()
+
+            withContext(Dispatchers.Main) {
+                userNameTextView.text = user?.username ?: "Unknown User"
+                userInfoTextView.text = user?.email ?: "No email provided"
+                followersCountTextView.text = "$followersCount Followers"
+                followingCountTextView.text = "$followingCount Followers"
+            }
+            checkFollowingStatus(userId, viewedUserId)
+        }
     }
 
-    private fun getUserDetails(userId: Long) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = RetrofitClient.instance.getUserDetails(userId).execute()
-                if (response.isSuccessful) {
-                    val user: User? = response.body()
-                    withContext(Dispatchers.Main) {
-                        userNameTextView.text = "${user?.username}"
-                        userInfoTextView.text = "${user?.email}"
-                        user?.profileImage?.let { byteArray ->
-                            val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-                            profileImage.setImageBitmap(bitmap)
-                        } ?: run {
-                            // Optionally set a placeholder image if the profileImage is null
-                            profileImage.setImageResource(R.drawable.ic_touxiang)
-                        }
-
-                    }
-                } else {
-                    Log.e(
-                        "ProfileFragment",
-                        "Failed to fetch user: ${response.errorBody()?.string()}"
-                    )
-                }
-            } catch (e: Exception) {
-                Log.e("ProfileFragment", "Network error while fetching user", e)
+    private suspend fun getUserDetails(userId: Long): User? {
+        return try {
+            val response = RetrofitClient.instance.getUserDetails(userId)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                Log.e("ProfileFragment", "Failed to fetch user: ${response.errorBody()?.string()}")
+                null
             }
+        } catch (e: Exception) {
+            Log.e("ProfileFragment", "Network error while fetching user", e)
+            null
+        }
+    }
+
+    private suspend fun getFollowersCount(userId: Long): Int {
+        return try {
+            val followersList = RetrofitClient.instance.getFollowers(userId) // Suspend function
+            followersList.size
+        } catch (e: Exception) {
+            Log.e("ProfileFragment", "Network error while fetching followers count", e)
+            0
         }
     }
 
 
-    private fun getFollowingCount(userId: Long) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = RetrofitClient.instance.getFollowing(userId).execute()
-                if (response.isSuccessful) {
-                    val followingList = response.body() ?: emptyList()
-                    withContext(Dispatchers.Main) {
-                        followingCountTextView.text = "${followingList.size} Following"
-                    }
-                } else {
-                    Log.e(
-                        "ProfileFragment",
-                        "Failed to fetch following count: ${response.errorBody()?.string()}"
-                    )
-                }
-            } catch (e: Exception) {
-                Log.e("ProfileFragment", "Network error while fetching following count", e)
-            }
-        }
-    }
-
-    private fun getFollowersCount(userId: Long) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = RetrofitClient.instance.getFollowers(userId).execute()
-                if (response.isSuccessful) {
-                    val followersList = response.body() ?: emptyList()
-                    withContext(Dispatchers.Main) {
-                        followersCountTextView.text = "${followersList.size} Followers"
-                    }
-                } else {
-                    Log.e(
-                        "ProfileFragment",
-                        "Failed to fetch followers count: ${response.errorBody()?.string()}"
-                    )
-                }
-            } catch (e: Exception) {
-                Log.e("ProfileFragment", "Network error while fetching followers count", e)
-            }
+    private suspend fun getFollowingCount(userId: Long): Int {
+        return try {
+            val followingList = RetrofitClient.instance.getFollowing(userId) // Suspend function
+            followingList.size
+        } catch (e: Exception) {
+            Log.e("ProfileFragment", "Network error while fetching followers count", e)
+            0
         }
     }
 
     private fun checkFollowingStatus(userId: Long, targetUserId: Long) {
-        RetrofitClient.instance.getFollowing(userId).enqueue(object : Callback<List<User>> {
-            override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
-                if (response.isSuccessful) {
-                    val following = response?.body()
-                    isFollowing = following?.any { it.id == targetUserId } ?: false
+        lifecycleScope.launch {
+            try {
+                val following = RetrofitClient.instance.getFollowing(userId) // Assuming this is now a suspend function
+                isFollowing = following.any { it.id == targetUserId }
 
-                    btnAction.text = if (isFollowing) "Unfollow" else "Follow"
+                btnAction.text = if (isFollowing) "Unfollow" else "Follow"
 
-                    btnAction.setOnClickListener {
-                        if (isFollowing) unfollowUser(userId, targetUserId)
-                        else followUser(userId, targetUserId)
+                btnAction.setOnClickListener {
+                    lifecycleScope.launch {
+                        if (isFollowing) {
+                            unfollowUser(userId, targetUserId) // Ensure unfollowUser is also suspend
+                        } else {
+                            followUser(userId, targetUserId) // Ensure followUser is also suspend
+                        }
+                        // Update the button text after action
+                        checkFollowingStatus(userId, targetUserId)
                     }
                 }
-            }
-
-            override fun onFailure(call: Call<List<User>>, t: Throwable) {
+            } catch (e: Exception) {
+                e.printStackTrace()
                 Toast.makeText(
                     requireContext(),
-                    "Failed to check following status",
+                    "Failed to check following status: ${e.message}",
                     Toast.LENGTH_SHORT
                 ).show()
             }
-        })
+        }
     }
-
-    private fun followUser(userId: Long, targetUserId: Long) {
-        RetrofitClient.instance.followUser(userId, targetUserId).enqueue(object :
-            Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+    private suspend fun followUser(userId: Long, targetUserId: Long) {
+        try {
+            val response = RetrofitClient.instance.followUser(userId, targetUserId)
+            withContext(Dispatchers.Main) {
                 if (response.isSuccessful) {
                     isFollowing = true
                     btnAction.text = "Unfollow"
@@ -212,17 +200,16 @@ class OthersProfileFragment : Fragment() {
                     Toast.makeText(requireContext(), "Failed to follow: ${response.errorBody()}", Toast.LENGTH_SHORT).show()
                 }
             }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                Toast.makeText(requireContext(), "Response failed: ${t.message}", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(requireContext(), "Response failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
-        })
+        }
     }
-
-    private fun unfollowUser(userId: Long, targetUserId: Long) {
-        RetrofitClient.instance.unfollowUser(userId, targetUserId).enqueue(object :
-            Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+    private suspend fun unfollowUser(userId: Long, targetUserId: Long) {
+        try {
+            val response = RetrofitClient.instance.unfollowUser(userId, targetUserId)
+            withContext(Dispatchers.Main) {
                 if (response.isSuccessful) {
                     isFollowing = false
                     btnAction.text = "Follow"
@@ -233,10 +220,13 @@ class OthersProfileFragment : Fragment() {
                     Toast.makeText(requireContext(), "Failed to unfollow: ${response.errorBody()}", Toast.LENGTH_SHORT).show()
                 }
             }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                Toast.makeText(requireContext(), "Response failed: ${t.message}", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(requireContext(), "Response failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
-        })
+        }
     }
+
+
+
 }

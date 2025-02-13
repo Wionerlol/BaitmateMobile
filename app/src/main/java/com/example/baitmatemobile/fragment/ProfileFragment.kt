@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -24,6 +25,7 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
@@ -75,6 +77,8 @@ class ProfileFragment : Fragment() {
             }
         }.attach()
 
+        viewPager.offscreenPageLimit = 1
+
         return view
     }
 
@@ -82,74 +86,70 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         Log.d("ProfileFragment", "$userId")
-        getUserDetails(userId)
-        getFollowersCount(userId)
-        getFollowingCount(userId)
-        btnLogout.setOnClickListener { logout() }
-        btnEditProfile.setOnClickListener{ }
-    }
-
-    private fun getUserDetails(userId: Long) {
         CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = RetrofitClient.instance.getUserDetails(userId).execute()
-                if (response.isSuccessful) {
-                    val user: User? = response.body()
-                    withContext(Dispatchers.Main) {
-                        userNameTextView.text = "${user?.username}"
-                        userInfoTextView.text = "${user?.email}"
-                        user?.profileImage?.let { byteArray ->
-                            val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+            val userDetailsDeferred = async { getUserDetails(userId) }
+            val followersCountDeferred = async { getFollowersCount(userId) }
+            val followingCountdeferred = async { getFollowingCount(userId)}
+
+            // Wait for both tasks to complete
+            val user = userDetailsDeferred.await()
+            val followersCount = followersCountDeferred.await()
+            val followingCount = followingCountdeferred.await()
+
+            withContext(Dispatchers.Main) {
+                userNameTextView.text = user?.username ?: "Unknown User"
+                userInfoTextView.text = user?.email ?: "No email provided"
+                /*
+                        user?.profileImage?.let { base64String ->
+                            val decodedBytes = Base64.decode(base64String, Base64.DEFAULT)
+                            val bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
                             profileImage.setImageBitmap(bitmap)
                         } ?: run {
                             // Optionally set a placeholder image if the profileImage is null
                             profileImage.setImageResource(R.drawable.ic_touxiang)
                         }
 
-                    }
-                } else {
-                    Log.e("ProfileFragment", "Failed to fetch user: ${response.errorBody()?.string()}")
-                }
-            } catch (e: Exception) {
-                Log.e("ProfileFragment", "Network error while fetching user", e)
+                         */
+                followersCountTextView.text = "$followersCount Followers"
+                followingCountTextView.text = "$followingCount Following"
             }
+        }
+        btnLogout.setOnClickListener { logout() }
+        btnEditProfile.setOnClickListener{ }
+    }
+
+    private suspend fun getUserDetails(userId: Long): User? {
+        return try {
+            val response = RetrofitClient.instance.getUserDetails(userId)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                Log.e("ProfileFragment", "Failed to fetch user: ${response.errorBody()?.string()}")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("ProfileFragment", "Network error while fetching user", e)
+            null
         }
     }
 
-
-    private fun getFollowingCount(userId: Long) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = RetrofitClient.instance.getFollowing(userId).execute()
-                if (response.isSuccessful) {
-                    val followingList = response.body() ?: emptyList()
-                    withContext(Dispatchers.Main) {
-                        followingCountTextView.text = "${followingList.size} Following"
-                    }
-                } else {
-                    Log.e("ProfileFragment", "Failed to fetch following count: ${response.errorBody()?.string()}")
-                }
-            } catch (e: Exception) {
-                Log.e("ProfileFragment", "Network error while fetching following count", e)
-            }
+    private suspend fun getFollowersCount(userId: Long): Int {
+        return try {
+            val followersList = RetrofitClient.instance.getFollowers(userId) // Suspend function
+            followersList.size
+        } catch (e: Exception) {
+            Log.e("ProfileFragment", "Network error while fetching followers count", e)
+            0
         }
     }
 
-    private fun getFollowersCount(userId: Long) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = RetrofitClient.instance.getFollowers(userId).execute()
-                if (response.isSuccessful) {
-                    val followersList = response.body() ?: emptyList()
-                    withContext(Dispatchers.Main) {
-                        followersCountTextView.text = "${followersList.size} Followers"
-                    }
-                } else {
-                    Log.e("ProfileFragment", "Failed to fetch followers count: ${response.errorBody()?.string()}")
-                }
-            } catch (e: Exception) {
-                Log.e("ProfileFragment", "Network error while fetching followers count", e)
-            }
+    private suspend fun getFollowingCount(userId: Long): Int {
+        return try {
+            val followingList = RetrofitClient.instance.getFollowing(userId) // Suspend function
+            followingList.size
+        } catch (e: Exception) {
+            Log.e("ProfileFragment", "Network error while fetching followers count", e)
+            0
         }
     }
 

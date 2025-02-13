@@ -38,13 +38,7 @@
                 android:textColor="@color/black"
                 tools:text="UserName"/>
 
-            <Button
-                android:id="@+id/btnFollow"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Follow"
-                android:textSize="14sp"
-                android:paddingHorizontal="12dp"/>
+
 
             <ImageView
                 android:id="@+id/ivReport"

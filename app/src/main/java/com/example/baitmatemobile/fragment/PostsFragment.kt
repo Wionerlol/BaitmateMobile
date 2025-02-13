@@ -3,6 +3,7 @@ package com.example.baitmatemobile.fragment
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +11,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import com.example.baitmatemobile.R
 import com.example.baitmatemobile.activity.PostDetailActivity
 import com.example.baitmatemobile.adapter.PostAdapter
 import com.example.baitmatemobile.databinding.FragmentPostsBinding
@@ -62,9 +64,23 @@ class PostsFragment : Fragment() {
     private fun initRecyclerView() {
         postAdapter = PostAdapter(userId) {
             clickedPost ->
+
+            val postDetailFragment = PostDetailFragment()
+            val args = Bundle().apply {
+                clickedPost.id?.let { putLong("postId", it) } // Pass the clickedPost.id
+            }
+            postDetailFragment.arguments = args
+
+            requireActivity().supportFragmentManager.beginTransaction()
+                .add(R.id.fragment_container, postDetailFragment)
+                .addToBackStack("discover_to_post_detail")
+                .commit()
+            /*
             val intent = Intent(requireContext(), PostDetailActivity::class.java)
             intent.putExtra("postId", clickedPost.id)
             startActivity(intent)
+
+             */
         }
 
         binding.userPosts.apply {
