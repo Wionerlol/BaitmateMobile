@@ -39,6 +39,10 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
 }
 
 secrets {
@@ -100,8 +104,11 @@ dependencies {
     implementation ("com.google.android.gms:play-services-maps:18.2.0")
     implementation ("com.google.android.libraries.places:places:2.5.0")
 
-
-
+    testImplementation("junit:junit:4.13.2") // 单元测试依赖
+    androidTestImplementation("androidx.test.ext:junit:1.1.5") // Android 测试依赖
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1") // Espresso UI 测试框架
+    androidTestImplementation("androidx.fragment:fragment-testing:1.4.0") // Fragment 测试工具
+    androidTestImplementation("androidx.test:rules:1.5.0")
     // 如果使用 Volley
     implementation ("com.android.volley:volley:1.2.1")
 }

@@ -32,6 +32,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BaitmateMobile"
         android:usesCleartextTraffic="true"
+        tools:node="merge"
         tools:targetApi="31">
         <activity
             android:name=".activity.RegisterActivity"
@@ -84,6 +85,13 @@
             android:name=".activity.UploadPostActivity"
             android:exported="true"
             android:label="UploadPost" />
+
+        <activity
+            android:name=".activity.TestActivity"
+            android:theme="@style/Theme.BaitmateMobile" />
+
+
+
 
     </application>
 

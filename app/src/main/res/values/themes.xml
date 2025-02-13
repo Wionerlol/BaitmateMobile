@@ -1,25 +1,20 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme -->
     <style name="Base.Theme.BaitmateMobile" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- 主要颜色 -->
+
         <item name="colorPrimary">@color/blue_primary</item>
         <item name="colorPrimaryDark">@color/blue_primary_variant</item>
         <item name="colorSecondary">@color/accent</item>
 
-        <!-- 背景颜色 -->
         <item name="android:windowBackground">@color/background</item>
 
-        <!-- 设置全局 ShapeableImageView 形状 -->
         <item name="shapeAppearanceSmallComponent">@style/RoundImageView</item>
 
-        <!-- 自定义按钮外观 -->
         <item name="materialButtonOutlinedStyle">@style/OutlinedButtonWhite</item>
     </style>
 
-    <!-- App 主主题 -->
     <style name="Theme.BaitmateMobile" parent="Base.Theme.BaitmateMobile"/>
 
-    <!-- 定义头像圆形 -->
     <style name="RoundImageView" parent="ShapeAppearance.Material3.SmallComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
@@ -28,9 +23,15 @@
         <item name="cornerSize">50%</item>
     </style>
 
-    <!-- 定义按钮样式，确保边框是白色 -->
+
     <style name="OutlinedButtonWhite" parent="Widget.Material3.Button.OutlinedButton">
         <item name="strokeColor">@color/white</item>
         <item name="android:textColor">@color/white</item>
     </style>
+
+    <style name="TestAppCompatTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
+
+
 </resources>
