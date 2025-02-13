@@ -28,7 +28,6 @@ class HomeFragment : Fragment() {
         // 🔹 绑定顶部导航 (Following, Discover, Help)
         binding.btnSubscribe.setOnClickListener { replaceFragment(SubscribeFragment()) }
         binding.btnExplore.setOnClickListener { replaceFragment(DiscoverFragment()) }
-        binding.btnAssist.setOnClickListener { replaceFragment(AssistFragment()) }
 
         // 🔍 绑定搜索按钮点击事件
         binding.btnSearch.setOnClickListener {

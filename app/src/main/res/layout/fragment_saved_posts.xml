@@ -2,12 +2,6 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <data>
-        <variable
-            name="fragment"
-            type="com.example.baitmatemobile.fragment.SubscribeFragment" />
-    </data>
-
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
@@ -18,7 +12,7 @@
             android:layout_height="match_parent">
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/FollowingPosts"
+                android:id="@+id/userSavedPosts"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:padding="4dp"

@@ -73,17 +73,6 @@
                     android:textSize="14sp"
                     android:textColor="@color/text_default"
                     android:gravity="center" />
-
-                <TextView
-                    android:id="@+id/btnAssist"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:paddingVertical="10dp"
-                    android:text="Help"
-                    android:textSize="14sp"
-                    android:textColor="@color/text_default"
-                    android:gravity="center" />
             </LinearLayout>
 
             <!-- 右侧搜索按钮 -->

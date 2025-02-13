@@ -84,13 +84,17 @@ interface ApiService {
         @POST("register")
         fun register(@Body request: RegisterRequest): Call<ResponseBody>
 
-        // 获取所有 Post
         @GET("posts")
         suspend fun getAllPosts(): List<Post>
 
-        // 获取单个 Post
         @GET("posts/{id}")
         suspend fun getPostById(@Path("id") id: Long): Post
+
+        @GET("posts/{userId}/following")
+        suspend fun getFollowingPosts(@Path("userId") userId: Long): List<Post>
+
+        @GET("posts/{userId}/saved")
+        suspend fun getSavedPosts(@Path("userId") userId: Long): List<Post>
 
         @GET("posts/{id}/by-user")
         suspend fun getPostByIdWithUser(@Path("id") id: Long,
