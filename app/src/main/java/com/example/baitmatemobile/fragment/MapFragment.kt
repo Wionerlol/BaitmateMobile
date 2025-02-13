@@ -11,6 +11,8 @@ import android.location.Location
 import androidx.fragment.app.Fragment
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -317,6 +319,9 @@ class MapFragment : Fragment() {
             },
             { error ->
                 Log.e("MapFragment", "Error preloading weather forecast: ${error.message}")
+                Handler(Looper.getMainLooper()).postDelayed({
+                    preloadWeatherForecast()
+                }, 5000)
             }
         )
         requestQueue.add(request)
@@ -355,16 +360,17 @@ class MapFragment : Fragment() {
         googleMap.clear()
         markers.clear()
 
-        if (locations.isNotEmpty()) {
-            locations.forEach { location ->
-                val position = LatLng(location.latitude, location.longitude)
-                val marker = googleMap.addMarker(
-                    MarkerOptions().position(position).title(location.locationName)
-                )
-                if (marker != null) {
-                    markers[location.id] = marker
+        locations.forEach { location ->
+            val position = LatLng(location.latitude, location.longitude)
+            val marker = googleMap.addMarker(
+                MarkerOptions().position(position).title(location.locationName)
+            )
+            marker?.let {
+                markers[location.id] = it
+                // 仅当天气数据可用时加载预报
+                if (weatherForecastResponse != null) {
+                    fetchWeatherForecast(location.locationName, position)
                 }
-                fetchWeatherForecast(location.locationName, position)
             }
         }
     }
@@ -380,10 +386,13 @@ class MapFragment : Fragment() {
     }
 
     private fun parseWeatherForecast(response: JSONObject, position: LatLng): String {
-        val areaMetaData = response.getJSONObject("data").getJSONArray("area_metadata")
-        val forecasts = response.getJSONObject("data").getJSONArray("items").getJSONObject(0).getJSONArray("forecasts")
-        var nearestForecast = "No forecast available"
-        var minDistance = Double.MAX_VALUE
+        if (response == null) return "No forecast data"
+
+        return try {
+            val areaMetaData = response.getJSONObject("data").getJSONArray("area_metadata")
+            val forecasts = response.getJSONObject("data").getJSONArray("items").getJSONObject(0).getJSONArray("forecasts")
+            var nearestForecast = "No forecast available"
+            var minDistance = Double.MAX_VALUE
 
         for (i in 0 until areaMetaData.length()) {
             val area = areaMetaData.getJSONObject(i)
@@ -397,6 +406,10 @@ class MapFragment : Fragment() {
             }
         }
         return nearestForecast
+        } catch (e: Exception) {
+            Log.e("MapFragment", "Forecast parse error: ${e.message}")
+            "Forecast unavailable"
+        }
 
     }
 
@@ -407,8 +420,16 @@ class MapFragment : Fragment() {
     }
 
     private fun parseValidPeriod(response: JSONObject): String {
-        val validPeriod = response.getJSONObject("data").getJSONArray("items").getJSONObject(0).getJSONObject("valid_period")
-        return validPeriod.getString("text")
+        if (response == null) return "No validity data"
+
+        return try {
+            val validPeriod = response.getJSONObject("data").getJSONArray("items")
+                .getJSONObject(0).getJSONObject("valid_period")
+            validPeriod.getString("text")
+        } catch (e: Exception) {
+            Log.e("MapFragment", "Valid period parse error: ${e.message}")
+            "Validity unknown"
+        }
     }
 
     private fun updateMarkerWithWeather(locationName: String, forecast: String, validPeriod: String) {
