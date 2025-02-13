@@ -51,12 +51,7 @@ class DiscoverFragment : Fragment() {
 
     private fun initRecyclerView(userId: Long) {
         postAdapter = PostAdapter(userId) { clickedPost ->
-            // 点击图片或者整块区域进入详情
-            /*
-            val intent = Intent(requireContext(), PostDetailActivity::class.java)
-            intent.putExtra("postId", clickedPost.id)
-            startActivity(intent)
-            */
+
             val postDetailFragment = PostDetailFragment()
             val args = Bundle().apply {
                 clickedPost.id?.let { putLong("postId", it) } // Pass the clickedPost.id
