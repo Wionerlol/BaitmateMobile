@@ -13,4 +13,6 @@
     <color name="text_default">#757575</color> <!-- 默认文字颜色 -->
     <color name="white">#FFFFFF</color>
     <color name="background">#F5F5F5</color> <!-- 更柔和的背景色 -->
+    <color name="primary_color">#4CAF50</color> <!-- 你可以修改为你喜欢的颜色 -->
+    <color name="primary_color_dark">#388E3C</color> <!-- 深色模式颜色 -->
 </resources>

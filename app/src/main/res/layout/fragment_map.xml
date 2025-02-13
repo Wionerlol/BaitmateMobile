@@ -4,41 +4,48 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Top search bar layout -->
+    <!-- 顶部搜索栏 -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="12dp"
+        android:elevation="6dp"
+        android:radius="16dp"
+        android:background="?attr/colorSurface">
 
-    <!-- Map -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <AutoCompleteTextView
+                android:id="@+id/et_search"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Enter location name"
+                android:inputType="text"
+                android:padding="8dp"
+                android:completionThreshold="1" />
+
+            <Button
+                android:id="@+id/btn_search"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Search"
+                android:backgroundTint="?attr/colorPrimary"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- 地图 -->
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="60dp" />
+        android:layout_height="match_parent" />
 
-    <!-- Bottom buttons (horizontally arranged) -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="8dp"
-        android:background="#FFFFFF"
-        android:elevation="4dp">
-
-        <AutoCompleteTextView
-            android:id="@+id/et_search"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:hint="Enter location name"
-            android:inputType="text"
-            android:padding="8dp"
-            android:completionThreshold="1" />
-
-        <Button
-            android:id="@+id/btn_search"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Search" />
-    </LinearLayout>
+    <!-- 底部按钮布局 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -46,7 +53,7 @@
         android:gravity="center"
         android:layout_gravity="bottom"
         android:padding="16dp"
-        android:background="#FFFFFF"
+        android:background="?attr/colorSurface"
         android:elevation="4dp">
 
         <Button
@@ -55,7 +62,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Show Fishing Spots"
-            android:layout_margin="8dp" />
+            android:layout_margin="8dp"
+            android:backgroundTint="?attr/colorPrimary"/>
 
         <Button
             android:id="@+id/btn_show_savedSpots"
@@ -63,7 +71,22 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Show Saved Spots"
-            android:layout_margin="8dp" />
+            android:layout_margin="8dp"
+            android:backgroundTint="?attr/colorPrimary"/>
     </LinearLayout>
 
+    <!-- 夜间模式切换按钮 -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btn_toggle_night_mode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="90dp"
+        android:src="@drawable/ic_night_mode"
+        android:contentDescription="Toggle Night Mode"
+        android:backgroundTint="?attr/colorPrimary"/>
+
+
 </FrameLayout>
+

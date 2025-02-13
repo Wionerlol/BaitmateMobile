@@ -4,36 +4,28 @@ import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.graphics.Camera
+import android.content.res.Configuration
 import android.graphics.Color
 import android.location.Geocoder
 import android.location.Location
 import androidx.fragment.app.Fragment
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Button
-import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.core.location.LocationManagerCompat.getCurrentLocation
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.android.volley.Request
 import com.android.volley.RequestQueue
-import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.example.baitmatemobile.R
@@ -44,22 +36,20 @@ import com.google.android.gms.location.LocationServices
 
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.gson.JsonArray
-import kotlinx.coroutines.GlobalScope
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
-import org.json.JSONArray
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
@@ -88,6 +78,8 @@ class MapFragment : Fragment() {
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var placesClient: PlacesClient
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var btnToggleNightMode: FloatingActionButton
+
     private var userLocationMarker: Marker? = null
 
     private val callback = OnMapReadyCallback { map ->
@@ -95,24 +87,26 @@ class MapFragment : Fragment() {
 
         googleMap.uiSettings.isMyLocationButtonEnabled = true  // ✅ 启用“我的位置”按钮
 
-        // ✅ 先检查是否有位置权限
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            googleMap.isMyLocationEnabled = true  // ✅ 只有用户授权后才启用定位
-            getCurrentLocation()  // ✅ 获取并更新当前位置
+        // ✅ 1️⃣ 检测系统是否处于夜间模式
+        val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
+        // ✅ 2️⃣ 设置地图样式（白天 / 夜间）
+        setMapStyle(isNightMode)
+
+        // ✅ 3️⃣ 先检查是否有位置权限
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            googleMap.isMyLocationEnabled = true  // 只有用户授权后才启用定位
+            getCurrentLocation()  // 获取并更新当前位置
         } else {
-            requestLocationPermission()  // ✅ 请求位置权限
+            requestLocationPermission()  // 请求位置权限
         }
 
         googleMap.setOnMarkerClickListener { marker ->
             showBottomSheetDialog(marker)
             true
         }
-        loadFishingHotspots()
     }
+
     private fun requestLocationPermission() {
         requestPermissions(
             arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
@@ -176,7 +170,15 @@ class MapFragment : Fragment() {
     ): View? {
         val rootView = inflater.inflate(R.layout.fragment_map, container, false)
 
+        // ✅ 确保 SharedPreferences 正确初始化
         sharedPreferences = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+
+        // ✅ 读取上次保存的夜间模式状态
+        val isNightMode = sharedPreferences.getBoolean("isNightMode", false)
+
+        // ✅ 设置地图样式
+        setMapStyle(isNightMode)
+
         userId = sharedPreferences.getLong("userId", 0)
 
         // ✅ 初始化 Google Places API
@@ -184,20 +186,37 @@ class MapFragment : Fragment() {
             Places.initialize(requireContext(), "AIzaSyCrE4w3aiRcrG6-DcuaaN-dMGcrZBeid80")
         }
         placesClient = Places.createClient(requireContext())
+
+        // ✅ 初始化位置服务
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
+        // ✅ 绑定 UI 组件
         map = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         searchBox = rootView.findViewById(R.id.et_search)
         btnSearch = rootView.findViewById(R.id.btn_search)
         btnMarkFishing = rootView.findViewById(R.id.btn_mark_fishing)
         btnShowHotspots = rootView.findViewById(R.id.btn_show_savedSpots)
+        btnToggleNightMode = rootView.findViewById(R.id.btn_toggle_night_mode)
         requestQueue = Volley.newRequestQueue(requireContext())
 
+        // ✅ 让夜间模式按钮图标与当前模式匹配
+        btnToggleNightMode.setImageResource(
+            if (isNightMode) R.drawable.ic_sun_mode else R.drawable.ic_night_mode
+        )
+
         preloadWeatherForecast()
+
+        // ✅ 设置搜索框支持自动补全
         setupAutoCompleteSearch()
+
+        // ✅ 绑定按钮点击事件
+        setButtonListeners()
 
         return rootView
     }
+
+
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -211,13 +230,41 @@ class MapFragment : Fragment() {
             val query = searchBox.text.toString().trim()
             searchLocation(query)
         }
-        btnMarkFishing.setOnClickListener{
-            fishingHotspotsData?.let { it1 -> addMarkersToMap(it1) }
+        btnMarkFishing.setOnClickListener {
+            if (fishingHotspotsData == null) {
+                Log.d("MapFragment", "Fetching fishing hotspots after button click.")
+                fetchFishingHotspots()
+            } else {
+                Log.d("MapFragment", "Fishing hotspots already loaded, showing markers.")
+                addMarkersToMap(fishingHotspotsData!!)
+            }
         }
         btnShowHotspots.setOnClickListener {
             fetchSavedSpots(userId)
         }
+
+        // ✅ 添加夜间模式切换
+        btnToggleNightMode.setOnClickListener {
+            val isNightMode = sharedPreferences.getBoolean("isNightMode", false)
+            val newMode = !isNightMode
+
+            // ✅ 更新 SharedPreferences
+            sharedPreferences.edit().putBoolean("isNightMode", newMode).apply()
+
+            // ✅ 刷新地图样式
+            googleMap.setMapStyle(null)  // 先清除当前样式
+            setMapStyle(newMode)         // 应用新样式
+
+            // ✅ 更新按钮图标
+            val iconRes = if (newMode) R.drawable.ic_sun_mode else R.drawable.ic_night_mode
+            btnToggleNightMode.setImageResource(iconRes)
+
+            Log.d("MapFragment", "夜间模式已切换: $newMode")
+        }
     }
+
+
+
 
     private fun showBottomSheetDialog(marker: Marker) {
         val bottomSheetDialog = BottomSheetDialog(requireContext())
@@ -235,7 +282,7 @@ class MapFragment : Fragment() {
         val locationId = markers.entries.find { it.value == marker }?.key ?: -1L
         if (locationId != -1L) {
             Log.d("MapFragment", "Checking if user $userId has saved location $locationId")
-            checkSavedLocations(locationId) { isSaved ->
+            val isLocationSaved = checkSavedLocations(locationId) { isSaved ->
                 if (isSaved) {
                     saveButton.text = "Saved"
                     saveButton.setBackgroundColor(Color.parseColor("#9E9E9E"))
@@ -319,15 +366,13 @@ class MapFragment : Fragment() {
             },
             { error ->
                 Log.e("MapFragment", "Error preloading weather forecast: ${error.message}")
-                Handler(Looper.getMainLooper()).postDelayed({
-                    preloadWeatherForecast()
-                }, 5000)
             }
         )
         requestQueue.add(request)
     }
 
     private fun fetchFishingHotspots() {
+        // If hotspots were not preloaded, fetch them.
         if (fishingHotspotsData != null) {
             addMarkersToMap(fishingHotspotsData!!)
             return
@@ -357,42 +402,38 @@ class MapFragment : Fragment() {
     }
 
     private fun addMarkersToMap(locations: List<FishingLocation>) {
-        googleMap.clear()
+        googleMap.clear()  // ✅ 先清空旧的 Marker
         markers.clear()
 
-        locations.forEach { location ->
-            val position = LatLng(location.latitude, location.longitude)
-            val marker = googleMap.addMarker(
-                MarkerOptions().position(position).title(location.locationName)
-            )
-            marker?.let {
-                markers[location.id] = it
-                // 仅当天气数据可用时加载预报
-                if (weatherForecastResponse != null) {
-                    fetchWeatherForecast(location.locationName, position)
+        if (locations.isNotEmpty()) {
+            locations.forEach { location ->
+                val position = LatLng(location.latitude, location.longitude)
+                val marker = googleMap.addMarker(
+                    MarkerOptions().position(position).title(location.locationName)
+                )
+                if (marker != null) {
+                    markers[location.id] = marker
                 }
             }
         }
     }
 
+
     private fun fetchWeatherForecast(locationName: String, position: LatLng) {
-        if (weatherForecastResponse != null) {
-            val forecast = parseWeatherForecast(weatherForecastResponse!!, position)
-            val validPeriod = parseValidPeriod(weatherForecastResponse!!)
-            updateMarkerWithWeather(locationName, forecast, validPeriod)
+        val forecast = if (weatherForecastResponse != null) {
+            parseWeatherForecast(weatherForecastResponse!!, position)
         } else {
             "No forecast available"
         }
+        val validPeriod = parseValidPeriod(weatherForecastResponse!!)
+        updateMarkerWithWeather(locationName, forecast, validPeriod)
     }
 
     private fun parseWeatherForecast(response: JSONObject, position: LatLng): String {
-        if (response == null) return "No forecast data"
-
-        return try {
-            val areaMetaData = response.getJSONObject("data").getJSONArray("area_metadata")
-            val forecasts = response.getJSONObject("data").getJSONArray("items").getJSONObject(0).getJSONArray("forecasts")
-            var nearestForecast = "No forecast available"
-            var minDistance = Double.MAX_VALUE
+        val areaMetaData = response.getJSONObject("data").getJSONArray("area_metadata")
+        val forecasts = response.getJSONObject("data").getJSONArray("items").getJSONObject(0).getJSONArray("forecasts")
+        var nearestForecast = "No forecast available"
+        var minDistance = Double.MAX_VALUE
 
         for (i in 0 until areaMetaData.length()) {
             val area = areaMetaData.getJSONObject(i)
@@ -406,10 +447,6 @@ class MapFragment : Fragment() {
             }
         }
         return nearestForecast
-        } catch (e: Exception) {
-            Log.e("MapFragment", "Forecast parse error: ${e.message}")
-            "Forecast unavailable"
-        }
 
     }
 
@@ -420,16 +457,8 @@ class MapFragment : Fragment() {
     }
 
     private fun parseValidPeriod(response: JSONObject): String {
-        if (response == null) return "No validity data"
-
-        return try {
-            val validPeriod = response.getJSONObject("data").getJSONArray("items")
-                .getJSONObject(0).getJSONObject("valid_period")
-            validPeriod.getString("text")
-        } catch (e: Exception) {
-            Log.e("MapFragment", "Valid period parse error: ${e.message}")
-            "Validity unknown"
-        }
+        val validPeriod = response.getJSONObject("data").getJSONArray("items").getJSONObject(0).getJSONObject("valid_period")
+        return validPeriod.getString("text")
     }
 
     private fun updateMarkerWithWeather(locationName: String, forecast: String, validPeriod: String) {
@@ -450,6 +479,7 @@ class MapFragment : Fragment() {
 
         lifecycleScope.launch {
             try {
+                // 🚀 1️⃣ 先检查 query 是否是钓鱼点
                 val fishingSpots = RetrofitClient.instance.searchFishingSpots(query)
                 if (fishingSpots.isNotEmpty()) {
                     val firstSpot = fishingSpots[0]
@@ -458,9 +488,10 @@ class MapFragment : Fragment() {
                     googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12f))
                     fetchNearbyFishingSpots(firstSpot.latitude, firstSpot.longitude)
 
-                    return@launch
+                    return@launch  // ✅ 退出协程，不执行后续的 Geocoder 代码
                 }
 
+                // 🚀 2️⃣ 如果 `query` 不是钓鱼点，就用 Geocoder 解析地址
                 val geocoder = Geocoder(requireContext(), Locale.getDefault())
                 val addresses = geocoder.getFromLocationName(query, 1)
 
@@ -472,8 +503,13 @@ class MapFragment : Fragment() {
                 val location = addresses[0]
                 val searchedLatLng = LatLng(location.latitude, location.longitude)
 
+                // ✅ 移动到用户搜索的地点
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(searchedLatLng, 12f))
+
+                // ✅ 添加 Marker 标记搜索地点
                 googleMap.addMarker(MarkerOptions().position(searchedLatLng).title(query))
+
+                // 🚀 3️⃣ 显示搜索地点周围 5km 内的钓鱼点
                 fetchNearbyFishingSpots(location.latitude, location.longitude)
 
             } catch (e: Exception) {
@@ -482,6 +518,8 @@ class MapFragment : Fragment() {
             }
         }
     }
+
+
 
     private fun fetchNearbyFishingSpots(latitude: Double, longtitude: Double) {
         lifecycleScope.launch {
@@ -496,11 +534,24 @@ class MapFragment : Fragment() {
     }
 
     private fun displayFishingSpotsOnMap(nearbySpots: List<FishingLocation>) {
-        val nearbySpotIds = nearbySpots.map { it.id }.toSet()
-        for ((spotId, marker) in markers) {
-            marker?.isVisible = spotId in nearbySpotIds
+        googleMap.clear()  // ✅ 先清除旧的 Marker
+        markers.clear()
+
+        if (nearbySpots.isNotEmpty()) {
+            nearbySpots.forEach { location ->
+                val position = LatLng(location.latitude, location.longitude)
+                val marker = googleMap.addMarker(
+                    MarkerOptions()
+                        .position(position)
+                        .title(location.locationName)
+                )
+                if (marker != null) {
+                    markers[location.id] = marker
+                }
+            }
         }
     }
+
 
     private fun fetchSavedSpots(userId: Long) {
         lifecycleScope.launch {
@@ -516,8 +567,8 @@ class MapFragment : Fragment() {
         }
     }
     private fun setupAutoCompleteSearch() {
-        searchBox.setAdapter(null)
-        searchBox.threshold = 1
+        searchBox.setAdapter(null) // 确保 searchBox 有 Adapter
+        searchBox.threshold = 1 // 只输入 1 个字符就开始显示建议
 
         searchBox.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {}
@@ -526,15 +577,15 @@ class MapFragment : Fragment() {
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 if (s != null && s.length > 2) {
-                    fetchAutoCompleteSuggestions(s.toString())
+                    fetchAutoCompleteSuggestions(s.toString()) // 获取自动补全建议
                 }
             }
         })
 
         searchBox.setOnItemClickListener { parent, _, position, _ ->
             val selectedItem = parent.getItemAtPosition(position).toString()
-            searchBox.setText(selectedItem)
-            searchLocation(selectedItem)
+            searchBox.setText(selectedItem) // 更新输入框
+            searchLocation(selectedItem) // 自动执行搜索
         }
     }
 
@@ -550,13 +601,50 @@ class MapFragment : Fragment() {
                 if (predictions.isNotEmpty()) {
                     searchAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, predictions)
                     searchBox.setAdapter(searchAdapter)
-                    searchAdapter.notifyDataSetChanged()
+                    searchAdapter.notifyDataSetChanged() // 确保刷新 Adapter
                 }
             }
             .addOnFailureListener { exception ->
                 Log.e("MapFragment", "Autocomplete fetch failed: ${exception.message}")
             }
     }
+    private fun setMapStyle(isNightMode: Boolean) {
+        try {
+            val styleRes = if (isNightMode) R.raw.night_mode_map else R.raw.day_mode_map
+            val success = googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), styleRes))
+
+            if (!success) {
+                Log.e("MapFragment", "地图样式解析失败")
+            }
+        } catch (e: Exception) {
+            Log.e("MapFragment", "应用地图样式时出错: ${e.message}")
+        }
+    }
+
+
+    private fun toggleNightMode() {
+        val isNightMode = sharedPreferences.getBoolean("isNightMode", false)  // 读取当前模式状态
+        val newMode = !isNightMode  // 反转模式
+
+        // ✅ 保存新模式状态到 SharedPreferences
+        sharedPreferences.edit().putBoolean("isNightMode", newMode).apply()
+
+        // ✅ 重新设置地图样式
+        setMapStyle(newMode)
+
+        // ✅ 更新按钮图标（可选）
+        if (newMode) {
+            btnToggleNightMode.setImageResource(R.drawable.ic_sun_mode) // 太阳图标（白天模式）
+        } else {
+            btnToggleNightMode.setImageResource(R.drawable.ic_night_mode) // 月亮图标（夜间模式）
+        }
+
+        Toast.makeText(requireContext(), if (newMode) "Switched to Night Mode" else "Switched to Day Mode", Toast.LENGTH_SHORT).show()
+    }
+
+
+
+
 
 
 }
