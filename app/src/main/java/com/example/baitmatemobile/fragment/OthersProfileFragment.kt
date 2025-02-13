@@ -106,7 +106,6 @@ class OthersProfileFragment : Fragment() {
             val followersCountDeferred = async { getFollowersCount(viewedUserId) }
             val followingCountdeferred = async { getFollowingCount(viewedUserId)}
 
-            // Wait for both tasks to complete
             val user = userDetailsDeferred.await()
             val followersCount = followersCountDeferred.await()
             val followingCount = followingCountdeferred.await()
@@ -138,7 +137,7 @@ class OthersProfileFragment : Fragment() {
 
     private suspend fun getFollowersCount(userId: Long): Int {
         return try {
-            val followersList = RetrofitClient.instance.getFollowers(userId) // Suspend function
+            val followersList = RetrofitClient.instance.getFollowers(userId)
             followersList.size
         } catch (e: Exception) {
             Log.e("ProfileFragment", "Network error while fetching followers count", e)
@@ -149,7 +148,7 @@ class OthersProfileFragment : Fragment() {
 
     private suspend fun getFollowingCount(userId: Long): Int {
         return try {
-            val followingList = RetrofitClient.instance.getFollowing(userId) // Suspend function
+            val followingList = RetrofitClient.instance.getFollowing(userId)
             followingList.size
         } catch (e: Exception) {
             Log.e("ProfileFragment", "Network error while fetching followers count", e)
@@ -160,7 +159,7 @@ class OthersProfileFragment : Fragment() {
     private fun checkFollowingStatus(userId: Long, targetUserId: Long) {
         lifecycleScope.launch {
             try {
-                val following = RetrofitClient.instance.getFollowing(userId) // Assuming this is now a suspend function
+                val following = RetrofitClient.instance.getFollowing(userId)
                 isFollowing = following.any { it.id == targetUserId }
 
                 btnAction.text = if (isFollowing) "Unfollow" else "Follow"
@@ -168,12 +167,10 @@ class OthersProfileFragment : Fragment() {
                 btnAction.setOnClickListener {
                     lifecycleScope.launch {
                         if (isFollowing) {
-                            unfollowUser(userId, targetUserId) // Ensure unfollowUser is also suspend
+                            unfollowUser(userId, targetUserId)
                         } else {
-                            followUser(userId, targetUserId) // Ensure followUser is also suspend
+                            followUser(userId, targetUserId)
                         }
-                        // Update the button text after action
-                        checkFollowingStatus(userId, targetUserId)
                     }
                 }
             } catch (e: Exception) {
@@ -193,8 +190,8 @@ class OthersProfileFragment : Fragment() {
                 if (response.isSuccessful) {
                     isFollowing = true
                     btnAction.text = "Unfollow"
-                    getFollowersCount(targetUserId)
-                    checkFollowingStatus(userId, targetUserId)
+                    val followersCount = getFollowersCount(targetUserId)
+                    followersCountTextView.text = "$followersCount Followers"
                     Toast.makeText(requireContext(), "Successfully followed!", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(requireContext(), "Failed to follow: ${response.errorBody()}", Toast.LENGTH_SHORT).show()
@@ -213,8 +210,8 @@ class OthersProfileFragment : Fragment() {
                 if (response.isSuccessful) {
                     isFollowing = false
                     btnAction.text = "Follow"
-                    getFollowersCount(targetUserId)
-                    checkFollowingStatus(userId, targetUserId)
+                    val followersCount = getFollowersCount(targetUserId)
+                    followersCountTextView.text = "$followersCount Followers"
                     Toast.makeText(requireContext(), "Successfully unfollowed!", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(requireContext(), "Failed to unfollow: ${response.errorBody()}", Toast.LENGTH_SHORT).show()
@@ -226,7 +223,5 @@ class OthersProfileFragment : Fragment() {
             }
         }
     }
-
-
 
 }
