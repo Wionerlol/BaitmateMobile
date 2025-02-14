@@ -1,7 +1,9 @@
 package com.example.baitmatemobile.model
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import java.time.LocalDateTime
-
+@Parcelize
 data class Post(
     val id: Long?,
     val postTitle: String?,
@@ -19,7 +21,7 @@ data class Post(
 
     var likedByCurrentUser: Boolean,
     var savedByCurrentUser: Boolean
-)
+): Parcelable
 
 data class CreatedPostDTO(
 

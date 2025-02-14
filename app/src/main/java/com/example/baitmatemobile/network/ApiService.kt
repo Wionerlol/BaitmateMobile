@@ -66,9 +66,6 @@ interface ApiService {
         @POST("login")
         fun login(@Body request: LoginRequest): Call<LoginResponse>
 
-        @POST("/api/catch-records/add")
-        fun saveCatchRecord(@Body catchRecord: CatchRecordDTO): Call<Void>
-
         @POST("logout")
         fun logout(@Header("Authorization") token: String): Call<ResponseBody>
 
@@ -137,6 +134,9 @@ interface ApiService {
         @GET("user/{userId}")
         suspend fun getUserDetails(@Path ("userId") userId: Long): Response<User>
 
+        @POST("user/{userId}/update")
+        suspend fun updateProfile(@Path("userId") userId: Long, @Body updatedUser: User): Response<ResponseBody>
+
         @GET("user/{userId}/followers")
         suspend fun getFollowers(@Path("userId") userId: Long): List<User>
 
@@ -165,5 +165,4 @@ interface ApiService {
 
         @POST("posts/report")
         suspend fun reportPost(@Body request: PostReportRequest)
-
 }

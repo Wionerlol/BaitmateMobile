@@ -45,6 +45,7 @@ class ProfileFragment : Fragment() {
     private lateinit var viewPager: ViewPager2
     private lateinit var profileImage: ImageView
     private var userId: Long = -1
+    private lateinit var user: User
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -91,7 +92,7 @@ class ProfileFragment : Fragment() {
             val followingCountdeferred = async { getFollowingCount(userId)}
 
             // Wait for both tasks to complete
-            val user = userDetailsDeferred.await()
+            user = userDetailsDeferred.await()!!
             val followersCount = followersCountDeferred.await()
             val followingCount = followingCountdeferred.await()
 
@@ -104,14 +105,8 @@ class ProfileFragment : Fragment() {
         }
         btnLogout.setOnClickListener { logout() }
         btnEditProfile.setOnClickListener{
-            val editProfileFragment = EditProfileFragment()
-            val args = Bundle().apply {
-                userId?.let { putLong("userId", it) } // Pass userid as args
-            }
-            editProfileFragment.arguments = args
-
             requireActivity().supportFragmentManager.beginTransaction()
-                .add(R.id.fragment_container, editProfileFragment)
+                .add(R.id.fragment_container, EditProfileFragment.newInstance(user))
                 .addToBackStack("profile_to_edit_profile")
                 .commit()
         }

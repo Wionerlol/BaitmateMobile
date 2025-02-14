@@ -1,5 +1,9 @@
 package com.example.baitmatemobile.model
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class User(
     val id: Long?,
     val username: String?,
@@ -10,8 +14,7 @@ data class User(
     val address: String?,
     val joinDate: String?,
     val userStatus: String?,
-    val profileImage: String?,
-    val savedPosts: List<Any>?,
-    val savedLocations: List<Any>?,
-    val likedPosts: List<Any>?,
-)
+    val savedPosts: List<Post>?,
+    val savedLocations: List<FishingLocation>?,
+    val likedPosts: List<Post>?,
+) : Parcelable
