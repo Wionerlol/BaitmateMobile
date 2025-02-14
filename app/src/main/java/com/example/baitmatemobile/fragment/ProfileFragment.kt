@@ -65,11 +65,9 @@ class ProfileFragment : Fragment() {
         val sharedPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         userId = sharedPrefs.getLong("userId", -1)
 
-        // Set up ViewPager2 with the adapter
         val adapter = ProfileTabsAdapter(requireActivity(), userId)
         viewPager.adapter = adapter
 
-        // Connect TabLayout with ViewPager2
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             when (position) {
                 0 -> tab.text = "Posts"
@@ -99,23 +97,23 @@ class ProfileFragment : Fragment() {
             withContext(Dispatchers.Main) {
                 userNameTextView.text = user?.username ?: "Unknown User"
                 userInfoTextView.text = user?.email ?: "No email provided"
-                /*
-                        user?.profileImage?.let { base64String ->
-                            val decodedBytes = Base64.decode(base64String, Base64.DEFAULT)
-                            val bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
-                            profileImage.setImageBitmap(bitmap)
-                        } ?: run {
-                            // Optionally set a placeholder image if the profileImage is null
-                            profileImage.setImageResource(R.drawable.ic_touxiang)
-                        }
-
-                         */
                 followersCountTextView.text = "$followersCount Followers"
                 followingCountTextView.text = "$followingCount Following"
             }
         }
         btnLogout.setOnClickListener { logout() }
-        btnEditProfile.setOnClickListener{ }
+        btnEditProfile.setOnClickListener{
+            val editProfileFragment = EditProfileFragment()
+            val args = Bundle().apply {
+                userId?.let { putLong("userId", it) } // Pass userid as args
+            }
+            editProfileFragment.arguments = args
+
+            requireActivity().supportFragmentManager.beginTransaction()
+                .add(R.id.fragment_container, editProfileFragment)
+                .addToBackStack("profile_to_edit_profile")
+                .commit()
+        }
     }
 
     private suspend fun getUserDetails(userId: Long): User? {

@@ -13,7 +13,9 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.baitmatemobile.adapter.CatchRecordAdapter
 import com.example.baitmatemobile.databinding.FragmentCatchRecordBinding
 import com.example.baitmatemobile.network.RetrofitClient
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class CatchRecordFragment : Fragment() {
     private var _binding: FragmentCatchRecordBinding? = null
@@ -63,7 +65,7 @@ class CatchRecordFragment : Fragment() {
     private fun loadCatchRecords() {
         lifecycleScope.launch {
             try {
-                val catchRecords = RetrofitClient.instance.getCatchRecordsByUserId(userId)
+                val catchRecords = withContext(Dispatchers.IO) {RetrofitClient.instance.getCatchRecordsByUserId(userId)}
                 Log.d("CatchRecordFragment", "Received response $catchRecords")
                 binding.userCatchRecords.adapter = CatchRecordAdapter(catchRecords)
             } catch (e: Exception) {
