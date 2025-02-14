@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.baitmatemobile.databinding.ItemCatchRecordBinding
 import com.example.baitmatemobile.model.CatchRecord
 import com.example.baitmatemobile.network.RetrofitClient
@@ -28,16 +29,15 @@ class CatchRecordAdapter(private val catchRecords: List<CatchRecord>) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(catchRecord: CatchRecord) {
-            // Bind data to the views in the layout
             binding.tvFishName.text = catchRecord.fishName?: "Unknown"
             binding.tvLocation.text = catchRecord.locationName?: "Unknown"
             binding.tvCatchTime.text = catchRecord.time
             binding.tvCatchLength.text = "Length: ${catchRecord.length} cm"
             binding.tvCatchWeight.text = "Weight: ${catchRecord.weight} kg"
 
-            // Optionally load the image using a library like Glide or Picasso
             Glide.with(binding.root.context)
                 .load(RetrofitClient.retrofit.baseUrl().toString() +"catch-records/${catchRecord.id}/image")
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(binding.ivCatchImage)
         }
     }
