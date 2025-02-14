@@ -315,7 +315,7 @@ class UploadPostActivity : AppCompatActivity() {
                     postContent = content,
                     userId = userId,
                     location = selectedLocation?.locationName,
-                    status = if (checkImageResults.contains("pending")) "pending1" else "approved",
+                    status = if (checkImageResults.contains("pending")) "pending" else "approved",
                     imageBase64List = imageBase64
                 )
                 val createdPost = RetrofitClient.instance.createPost(post)

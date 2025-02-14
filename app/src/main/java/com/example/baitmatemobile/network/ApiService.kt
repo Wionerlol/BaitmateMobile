@@ -110,12 +110,6 @@ interface ApiService {
                 @Query("userId") userId: Long
         ): Post
 
-        @Multipart
-        @POST("http://10.0.2.2:5000/api/image/predict")
-        suspend fun uploadImage(
-                @Part image: MultipartBody.Part
-        ): Response<List<List<String>>>
-
         @GET("locations")
         suspend fun getLocations(): Response<List<LocationDTO>>
 
@@ -152,10 +146,16 @@ interface ApiService {
         @POST("user/{userId}/unfollow")
         suspend fun unfollowUser(@Path("userId") userId: Long, @Query("targetUserId") targetUserId: Long): Response<ResponseBody>
 
-        @POST("http://10.0.2.2:5000/api/image/check")
+        @POST("http://54.179.124.196:5000/api/image/check")
         suspend fun checkImage(
                 @Body image: UploadPostActivity.ImageCheckRequest
         ): Response<UploadPostActivity.ImageCheckResponse>
+
+        @Multipart
+        @POST("http://54.179.124.196:5000/api/image/predict")
+        suspend fun uploadImage(
+                @Part image: MultipartBody.Part
+        ): Response<List<List<String>>>
 
         @GET("redDots/{userId}")
         suspend fun getRedDots(@Path("userId") userId: Long): List<RedDotResponse>
