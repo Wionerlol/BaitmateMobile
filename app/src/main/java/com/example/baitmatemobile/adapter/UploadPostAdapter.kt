@@ -9,9 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.baitmatemobile.R
 
-/**
- * 预览图片用的Adapter
- */
+
 class PreviewImagesAdapter(private val imageUris: List<Uri>) :
     RecyclerView.Adapter<PreviewImagesAdapter.PreviewViewHolder>() {
 

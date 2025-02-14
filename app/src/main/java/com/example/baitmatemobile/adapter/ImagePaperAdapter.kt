@@ -24,19 +24,15 @@ class ImagePagerAdapter(private val images: List<Image>) :
     }
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
-        // 1. 拿到后端返回的 imageOid
+
         val imageOid = images[position].image
 
-        // 2. 如果你有后端下载图片的接口，可以这样拼接
-        //    比如 GET /api/images/oid/{oid} 返回图片流
-        //    这里演示一个假设的 url
         val imageUrl = RetrofitClient.retrofit.baseUrl().toString() + "posts/oid/$imageOid"
 
-        // 3. 用 Glide 加载
         Glide.with(holder.itemView)
             .load(imageUrl)
-            .placeholder(R.drawable.placeholder) // 占位图
-            .error(R.drawable.error_image) // 错误图
+            .placeholder(R.drawable.placeholder)
+            .error(R.drawable.error_image)
             .into(holder.ivImage)
     }
 

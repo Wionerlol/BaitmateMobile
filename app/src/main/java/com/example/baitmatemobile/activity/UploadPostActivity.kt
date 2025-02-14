@@ -94,7 +94,6 @@ class UploadPostActivity : AppCompatActivity() {
         requestLocationAndLoadData()
         fetchLocations()
 
-        // 1. 获取从编辑页面传来的图片
         val uris = intent.getParcelableArrayListExtra<Uri>("selectedImages")
         if (uris != null) {
             editedUris.addAll(uris)
@@ -106,13 +105,10 @@ class UploadPostActivity : AppCompatActivity() {
         }
         val imageBase64List = imageByteArrays.map { byteArrayToBase64(it) }
 
-
-        // 2. 设置 RecyclerView 预览选中图片
         previewAdapter = PreviewImagesAdapter(editedUris)
         rvPreviewImages.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         rvPreviewImages.adapter = previewAdapter
 
-        // 3. 初始化地点下拉框
         val locations = listOf("", "West coast park", "East coast park")
         val adapter = ArrayAdapter(
             this,
@@ -121,12 +117,10 @@ class UploadPostActivity : AppCompatActivity() {
         )
         spinnerLocation.setAdapter(adapter)
 
-        // 4. 返回按钮
         btnBack.setOnClickListener {
-            finish() // 返回上一页
+            finish()
         }
 
-        // 5. 发布按钮点击 -> 调用后端API
         btnPublish.setOnClickListener {
             if(validateInput()){
                 publishPost(imageBase64List)
@@ -185,7 +179,7 @@ class UploadPostActivity : AppCompatActivity() {
                     getLastLocation()
                 } else {
                     showError("Location permission required")
-                    setupDefaultLocation() // 可以设置默认位置或禁用相关功能
+                    setupDefaultLocation()
                 }
             }
         }
@@ -219,8 +213,7 @@ class UploadPostActivity : AppCompatActivity() {
     }
 
     private fun setupDefaultLocation() {
-        // 可以设置默认位置或显示提示
-        userLat = 1.3521  // 新加坡默认坐标
+        userLat = 1.3521
         userLng = 103.8198
         fetchLocations()
     }
@@ -262,7 +255,6 @@ class UploadPostActivity : AppCompatActivity() {
         spinnerLocation.setAdapter(adapter)
     }
 
-    // 添加距离计算方法（与CatchDetailActivity相同）
     private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
         val earthRadius = 6371000.0 // meters
         val dLat = Math.toRadians(lat2 - lat1)
@@ -274,7 +266,6 @@ class UploadPostActivity : AppCompatActivity() {
         return earthRadius * c
     }
 
-    // 添加加载状态控制
     private fun showLoading(show: Boolean) {
         progressBar.visibility = if (show) View.VISIBLE else View.GONE
         btnPublish.isEnabled = !show
@@ -292,7 +283,6 @@ class UploadPostActivity : AppCompatActivity() {
 
         var userId = sharedPrefs.getLong("userId",0)
 
-        // 协程或回调方式请求
         lifecycleScope.launch {
             try {
                 val checkImageResults = mutableListOf<String>()
@@ -319,8 +309,6 @@ class UploadPostActivity : AppCompatActivity() {
                     imageBase64List = imageBase64
                 )
                 val createdPost = RetrofitClient.instance.createPost(post)
-                // 请求成功，跳转回Home Fragment
-                // 常见做法是：finish()，如果是单Activity+多Fragment架构，可以让Activity去切换到HomeFragment
                 Toast.makeText(this@UploadPostActivity, "UPLOAD SUCCESSFUL！ID=${createdPost}", Toast.LENGTH_SHORT).show()
                 finish()
             } catch (e: Exception) {

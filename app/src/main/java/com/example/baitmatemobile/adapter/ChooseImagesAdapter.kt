@@ -36,13 +36,11 @@ class ChooseImagesAdapter(
         private val checkIcon: ImageView = itemView.findViewById(R.id.ivCheckIcon)
 
         fun bind(item: ImageItem, onItemCheckChanged: (position: Int, isChecked: Boolean) -> Unit) {
-            // 加载图片，可以使用Glide/Picasso等
+
             Glide.with(ivPhoto.context).load(item.uri).into(ivPhoto)
 
-            // 根据 item.isSelected 显示/隐藏对勾
             checkIcon.visibility = if (item.isSelected) View.VISIBLE else View.INVISIBLE
 
-            // 点击对勾/点击图片都可以切换选中状态
             itemView.setOnClickListener {
                 item.isSelected = !item.isSelected
                 checkIcon.visibility = if (item.isSelected) View.VISIBLE else View.INVISIBLE

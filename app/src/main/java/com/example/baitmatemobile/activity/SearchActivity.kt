@@ -19,10 +19,8 @@ class SearchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 使用 DataBinding
         binding = DataBindingUtil.setContentView(this, R.layout.activity_search)
 
-        // 初始化 ViewModel
         viewModel = ViewModelProvider(this)[SearchViewModel::class.java]
         binding.activity = this
         binding.searchQuery = viewModel.searchQuery.toString()

@@ -24,7 +24,9 @@ import com.example.baitmatemobile.model.CreateCommentDTO
 import com.example.baitmatemobile.model.Post
 import com.example.baitmatemobile.model.PostReportRequest
 import com.example.baitmatemobile.network.RetrofitClient
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class PostDetailFragment : Fragment() {
 
@@ -71,29 +73,6 @@ class PostDetailFragment : Fragment() {
 
         loadPostDetails(postId!!)
 
-        lifecycleScope.launch {
-            try {
-                val latestPost = RetrofitClient.instance.getPostByIdWithUser(postId!!, userId)
-                val isSaved = latestPost.savedByCurrentUser
-                val newCount = latestPost.savedCount ?: 0
-
-                if (isSaved) {
-                    ivSave.setImageResource(R.drawable.ic_save_filled)
-                } else {
-                    ivSave.setImageResource(R.drawable.ic_save_outline)
-                }
-                tvSaveCount.text = newCount.toString()
-                ivSave.tag = isSaved
-
-                post?.let {
-                    it.likeCount = newCount
-                    it.savedByCurrentUser = isSaved
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-
         ivSave.setOnClickListener { toggleSave(postId!!, userId) }
         ivComment.setOnClickListener { submitComment() }
         ivReport.setOnClickListener { report(postId!!)}
@@ -133,7 +112,7 @@ class PostDetailFragment : Fragment() {
     private fun loadPostDetails(id: Long) {
         lifecycleScope.launch {
             try {
-                val fetchedPost = RetrofitClient.instance.getPostById(id)
+                val fetchedPost = RetrofitClient.instance.getPostByIdWithUser(id,userId)
                 post = fetchedPost
                 bindPostData(fetchedPost)
                 tvUsername.isEnabled = true
@@ -159,19 +138,8 @@ class PostDetailFragment : Fragment() {
 
         tvSaveCount.text = post.savedCount.toString()
 
-        val isSaved = post.savedByCurrentUser
-        val newCount = post.savedCount ?: 0
-
-        if (isSaved) {
-            ivSave.setImageResource(R.drawable.ic_save_filled)
-        } else {
-            ivSave.setImageResource(R.drawable.ic_save_outline)
-        }
-        tvSaveCount.text = newCount.toString()
-        ivSave.tag = isSaved
-
-        post.likeCount = newCount
-        post.savedByCurrentUser = isSaved
+        ivSave.setImageResource(if (post.savedByCurrentUser == true) R.drawable.ic_save_filled else R.drawable.ic_save_outline)
+        ivSave.tag = post.savedByCurrentUser
 
         tvUsername.setOnClickListener {
             val viewedUserId = post.user?.id
@@ -194,10 +162,6 @@ class PostDetailFragment : Fragment() {
         }
     }
 
-    private fun toggleFollow() {
-        Toast.makeText(requireContext(), "Follow clicked", Toast.LENGTH_SHORT).show()
-    }
-
     private fun toggleSave(postId: Long, userId: Long) {
         lifecycleScope.launch {
             try {
@@ -213,11 +177,7 @@ class PostDetailFragment : Fragment() {
     }
 
     private fun updateSaveUI(isSaved: Boolean, newCount: Int) {
-        if (isSaved) {
-            ivSave.setImageResource(R.drawable.ic_save_filled)
-        } else {
-            ivSave.setImageResource(R.drawable.ic_save_outline)
-        }
+        ivSave.setImageResource(if (isSaved) R.drawable.ic_save_filled else R.drawable.ic_save_outline)
         tvSaveCount.text = newCount.toString()
         ivSave.tag = isSaved
     }

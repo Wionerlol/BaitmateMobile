@@ -22,22 +22,13 @@ class HomeFragment : Fragment() {
     ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
 
-        // 默认显示 DiscoverFragment
         replaceFragment(DiscoverFragment())
 
-        // 🔹 绑定顶部导航 (Following, Discover, Help)
         binding.btnSubscribe.setOnClickListener { replaceFragment(SubscribeFragment()) }
         binding.btnExplore.setOnClickListener { replaceFragment(DiscoverFragment()) }
 
-        // 🔍 绑定搜索按钮点击事件
-        binding.btnSearch.setOnClickListener {
-            val intent = Intent(requireContext(), SearchActivity::class.java)
-            startActivity(intent)
-        }
-
        binding.btnPost.setOnClickListener {
            binding.btnPost.setOnClickListener {
-               // 跳转到选择图片Activity
                val intent = Intent(requireContext(), ChooseImagesActivity::class.java)
                startActivity(intent)
            }
@@ -55,6 +46,6 @@ class HomeFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null  // 防止内存泄漏
+        _binding = null
     }
 }

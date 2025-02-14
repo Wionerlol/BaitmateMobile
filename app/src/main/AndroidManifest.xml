@@ -70,10 +70,6 @@
             android:exported="true"
             android:label="Search" />
 
-        <activity
-            android:name=".activity.PostDetailActivity"
-            android:exported="true"
-            android:label="PostDetail" />
         <activity android:name=".activity.CatchDetailActivity" />
 
         <activity

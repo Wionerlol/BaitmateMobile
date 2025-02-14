@@ -5,7 +5,6 @@
     android:orientation="vertical"
     android:padding="8dp">
 
-    <!-- 页面标题 -->
     <TextView
         android:id="@+id/tv_notifications_title"
         android:layout_width="wrap_content"
@@ -15,13 +14,11 @@
         android:textStyle="bold"
         android:paddingBottom="8dp" />
 
-    <!-- 下拉刷新布局 -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- 通知列表 -->
         <ListView
             android:id="@+id/notification_list"
             android:layout_width="match_parent"

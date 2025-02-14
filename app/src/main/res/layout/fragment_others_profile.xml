@@ -38,7 +38,6 @@
                     android:padding="16dp"
                     app:layout_collapseMode="parallax">
 
-                    <!-- ✅ 头像 -->
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/profileImage"
                         android:layout_width="80dp"
@@ -101,7 +100,6 @@
                             android:gravity="center"/>
                     </LinearLayout>
 
-                    <!-- ✅ 按钮区域 -->
                     <LinearLayout
                         android:id="@+id/buttonContainer"
                         android:layout_width="wrap_content"

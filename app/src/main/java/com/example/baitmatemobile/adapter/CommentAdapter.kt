@@ -34,11 +34,9 @@ class CommentAdapter : ListAdapter<Comment, CommentAdapter.CommentViewHolder>(Di
             tvComment.text = comment.comment ?: ""
             tvLikeCount.text = comment.likeCount?.toString() ?: "0"
 
-            // 点击喜欢评论
             ivLike.setOnClickListener {
                 val isCurrentlyLiked = (ivLike.tag as? Boolean) == true
                 val newLike = !isCurrentlyLiked
-                // 这里可以写一个更新Comment的后端接口
                 // ...
                 updateLikeUI(newLike, (comment.likeCount ?: 0) + (if (newLike) 1 else -1))
             }
@@ -60,7 +58,9 @@ class CommentAdapter : ListAdapter<Comment, CommentAdapter.CommentViewHolder>(Di
             return oldItem.id == newItem.id
         }
         override fun areContentsTheSame(oldItem: Comment, newItem: Comment): Boolean {
-            return oldItem == newItem
+            return oldItem == newItem&&
+                    oldItem.likeCount == newItem.likeCount //&&
+                    //oldItem.likedByCurrentUser == newItem.likedByCurrentUser
         }
     }
 }

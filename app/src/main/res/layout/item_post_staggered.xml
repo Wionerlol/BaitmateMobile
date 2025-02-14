@@ -6,7 +6,6 @@
         <variable
             name="post"
             type="com.example.baitmatemobile.model.Post" />
-        <!-- 如果需要绑定事件，可以多设置 variable -->
     </data>
 
     <LinearLayout
@@ -17,7 +16,6 @@
         android:background="@android:color/white"
         android:padding="8dp">
 
-        <!-- 第一张图片：自适应宽度，高度根据比例变化 -->
         <ImageView
             android:id="@+id/ivPostImage"
             android:layout_width="match_parent"
@@ -26,7 +24,6 @@
             android:scaleType="fitCenter"
             tools:src="@tools:sample/avatars" />
 
-        <!-- postTitle (固定高度 + 文字超出显示省略号) -->
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="match_parent"
@@ -34,9 +31,8 @@
             android:ellipsize="end"
             android:maxLines="2"
             android:textSize="14sp"
-            tools:text="这是一个较长的标题测试用例" />
+            tools:text="This is a long test case" />
 
-        <!-- 底部：用户名(左)，like按钮+likeCount(右) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

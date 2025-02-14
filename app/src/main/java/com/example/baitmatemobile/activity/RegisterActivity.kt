@@ -57,7 +57,6 @@ class RegisterActivity : AppCompatActivity() {
         val age = ageString.toInt()
         val registerRequest = RegisterRequest(username, password, phoneNumber, email, age, gender, address)
 
-        // ✅ 发送请求前记录请求参数
         Log.d("RegisterActivity", "Sending Register Request: $registerRequest")
 
         RetrofitClient.instance.register(registerRequest).enqueue(object : Callback<ResponseBody> {

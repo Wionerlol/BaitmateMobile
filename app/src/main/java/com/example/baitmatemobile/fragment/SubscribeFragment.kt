@@ -46,7 +46,7 @@ class SubscribeFragment : Fragment() {
     }
 
     private fun initRecyclerView(userId: Long) {
-        postAdapter = PostAdapter(userId) { clickedPost ->
+        postAdapter = PostAdapter(userId, viewLifecycleOwner.lifecycleScope) { clickedPost ->
             val postDetailFragment = PostDetailFragment()
             val args = Bundle().apply {
                 clickedPost.id?.let { putLong("postId", it) }

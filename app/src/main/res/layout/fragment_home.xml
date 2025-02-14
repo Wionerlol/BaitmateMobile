@@ -15,7 +15,6 @@
         android:background="@color/background"
         tools:context=".fragment.HomeFragment">
 
-        <!-- 顶部栏（发布 + 分类选择 + 搜索） -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/top_bar"
             android:layout_width="match_parent"
@@ -25,7 +24,6 @@
             android:background="@color/white"
             android:elevation="6dp">
 
-            <!-- 左侧发布按钮 -->
             <ImageView
                 android:id="@+id/btnPost"
                 android:layout_width="24dp"
@@ -39,7 +37,6 @@
                 android:layout_marginStart="12dp"
                 android:layout_marginVertical="8dp" />
 
-            <!-- 中间的 Following | Discover | Help -->
             <LinearLayout
                 android:id="@+id/top_buttons"
                 android:layout_width="0dp"
@@ -48,7 +45,7 @@
                 android:gravity="center"
                 android:layout_marginHorizontal="8dp"
                 app:layout_constraintStart_toEndOf="@id/btnPost"
-                app:layout_constraintEnd_toStartOf="@id/btnSearch"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent">
 
@@ -75,23 +72,9 @@
                     android:gravity="center" />
             </LinearLayout>
 
-            <!-- 右侧搜索按钮 -->
-            <ImageView
-                android:id="@+id/btnSearch"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_search"
-                android:contentDescription="Search"
-                android:scaleType="fitCenter"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                android:layout_marginEnd="12dp"
-                android:layout_marginVertical="8dp"/>
-
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- Fragment 容器 -->
+
         <FrameLayout
             android:id="@+id/home_fragment_container"
             android:layout_width="match_parent"

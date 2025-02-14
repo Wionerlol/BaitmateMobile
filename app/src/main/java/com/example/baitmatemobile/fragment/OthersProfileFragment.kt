@@ -91,6 +91,7 @@ class OthersProfileFragment : Fragment() {
             when (position) {
                 0 -> tab.text = "Posts"
                 1 -> tab.text = "Catch Record"
+                2 -> tab.text = "Saved Posts"
             }
         }.attach()
 

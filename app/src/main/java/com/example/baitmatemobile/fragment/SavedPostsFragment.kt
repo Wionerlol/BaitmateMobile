@@ -58,7 +58,7 @@ class SavedPostsFragment : Fragment() {
     }
 
     private fun initRecyclerView() {
-        postAdapter = PostAdapter(userId) {
+        postAdapter = PostAdapter(userId,viewLifecycleOwner.lifecycleScope) {
                 clickedPost ->
             val postDetailFragment = PostDetailFragment()
             val args = Bundle().apply {

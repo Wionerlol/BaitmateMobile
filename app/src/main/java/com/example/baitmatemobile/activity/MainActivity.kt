@@ -51,7 +51,6 @@ class MainActivity : AppCompatActivity() {
             .hide(profileFragment)
             .commit()
 
-        // 绑定底部导航栏
         binding.bottomNav.setOnItemSelectedListener { item ->
             supportFragmentManager.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
             when (item.itemId) {
@@ -65,12 +64,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // 打开搜索页面
     fun openSearchActivity() {
         startActivity(Intent(this, SearchActivity::class.java))
     }
 
-    // 切换 Fragment
     private fun showFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction().apply {
             // Hide all fragments.

@@ -30,6 +30,7 @@ class RedDotAdapter(context: Context, private val redDots: List<RedDot>) :
         val username = view.findViewById<TextView>(R.id.notification_username)
         val postTitle = view.findViewById<TextView>(R.id.notification_post_title)
         val commentText = view.findViewById<TextView>(R.id.notification_comment_text)
+        val actionText = view.findViewById<TextView>(R.id.notification_action_text)
         val time = view.findViewById<TextView>(R.id.notification_time)
 
         username.text = notification.sender?.username
@@ -38,10 +39,12 @@ class RedDotAdapter(context: Context, private val redDots: List<RedDot>) :
 
         when (notification) {
             is CommentRedDot -> {
+                actionText.text = "commented on your post"
                 commentText.text = notification.commentText
+                commentText.visibility = View.VISIBLE;
             }
             is LikeRedDot -> {
-                commentText.text = "liked your post"
+                actionText.text = "liked your post"
             }
         }
 
@@ -85,8 +88,8 @@ class RedDotAdapter(context: Context, private val redDots: List<RedDot>) :
 
             val fragmentManager = (context as? AppCompatActivity)?.supportFragmentManager
             fragmentManager?.beginTransaction()
-                ?.add(R.id.fragment_container, postDetailFragment)  // `fragment_container` 是你的 Fragment 容器 ID
-                ?.addToBackStack(null)  // 添加到返回栈，允许用户按返回键回到上一个 Fragment
+                ?.add(R.id.fragment_container, postDetailFragment)
+                ?.addToBackStack(null)
                 ?.commit()
         }
 

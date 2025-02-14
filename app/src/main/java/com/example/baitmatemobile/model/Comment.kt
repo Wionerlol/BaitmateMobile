@@ -5,8 +5,6 @@ data class Comment(
     val comment: String?,
     val time: String?,
     val likeCount: Int?,
-
     val user: User?,
-
     val postId: Long?
 )

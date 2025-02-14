@@ -84,8 +84,8 @@ interface ApiService {
         @POST("register")
         fun register(@Body request: RegisterRequest): Call<ResponseBody>
 
-        @GET("posts")
-        suspend fun getAllPosts(): List<Post>
+        @GET("posts/all/{userId}")
+        suspend fun getAllPosts(@Path("userId") userId: Long): List<Post>
 
         @GET("posts/{id}")
         suspend fun getPostById(@Path("id") id: Long): Post
@@ -96,18 +96,16 @@ interface ApiService {
         @GET("posts/{userId}/saved")
         suspend fun getSavedPosts(@Path("userId") userId: Long): List<Post>
 
-        @GET("posts/{id}/by-user")
+        @GET("posts/{id}/by-user/{userId}")
         suspend fun getPostByIdWithUser(@Path("id") id: Long,
-                                @Query("userId") userId: Long): Post
+                                        @Path("userId") userId: Long): Post
 
         @GET("users/{id}")
         suspend fun getUserById(@Path("id") id: Long): User
 
-        // 创建 Post
         @POST("posts/create")
         suspend fun createPost(@Body post: CreatedPostDTO): Long
 
-        // 更新喜爱状态
         @PUT("posts/{postId}/like")
         suspend fun toggleLike(
                 @Path("postId") postId: Long,
@@ -132,8 +130,9 @@ interface ApiService {
         @POST("posts/comment")
         suspend fun createComment(@Body comment: CreateCommentDTO): Long
 
-        @GET("posts/user/{userId}")
-        suspend fun getPostsByUserId(@Path("userId") userId: Long): List<Post>
+        @GET("posts/user/{userId}/{currentUserId}")
+        suspend fun getPostsByUserId(@Path("userId") userId: Long,
+                                     @Path("currentUserId") currentUserId: Long,): List<Post>
 
         @GET("user/{userId}")
         suspend fun getUserDetails(@Path ("userId") userId: Long): Response<User>

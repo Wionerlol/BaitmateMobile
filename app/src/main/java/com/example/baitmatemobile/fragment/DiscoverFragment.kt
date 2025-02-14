@@ -14,7 +14,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.baitmatemobile.R
-import com.example.baitmatemobile.activity.PostDetailActivity
 import com.example.baitmatemobile.adapter.PostAdapter
 import com.example.baitmatemobile.databinding.FragmentDiscoverBinding
 import com.example.baitmatemobile.network.RetrofitClient
@@ -42,15 +41,15 @@ class DiscoverFragment : Fragment() {
         val sharedPrefs = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         val userId = sharedPrefs.getLong("userId", -1)
         initRecyclerView(userId)
-        loadPosts()
+        loadPosts(userId)
 
         binding.swipeRefreshLayout.setOnRefreshListener {
-            loadPosts()
+            loadPosts(userId)
         }
     }
 
     private fun initRecyclerView(userId: Long) {
-        postAdapter = PostAdapter(userId) { clickedPost ->
+        postAdapter = PostAdapter(userId, viewLifecycleOwner.lifecycleScope) { clickedPost ->
 
             val postDetailFragment = PostDetailFragment()
             val args = Bundle().apply {
@@ -65,16 +64,15 @@ class DiscoverFragment : Fragment() {
         }
 
         binding.rvPosts.apply {
-            // 两列瀑布流
             layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
             adapter = postAdapter
         }
     }
 
-    private fun loadPosts() {
+    private fun loadPosts(userId: Long) {
         lifecycleScope.launch {
             try {
-                val posts = RetrofitClient.instance.getAllPosts()
+                val posts = RetrofitClient.instance.getAllPosts(userId)
                 val filteredPosts = posts.filter { it.postStatus == "approved" || it.postStatus == "petition" }
                 postAdapter.submitList(filteredPosts)
 

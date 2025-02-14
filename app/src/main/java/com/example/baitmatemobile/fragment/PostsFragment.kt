@@ -12,7 +12,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.baitmatemobile.R
-import com.example.baitmatemobile.activity.PostDetailActivity
 import com.example.baitmatemobile.adapter.PostAdapter
 import com.example.baitmatemobile.databinding.FragmentPostsBinding
 import com.example.baitmatemobile.network.RetrofitClient
@@ -53,16 +52,18 @@ class PostsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val sharedPrefs = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val currentUserId = sharedPrefs.getLong("userId", -1)
         initRecyclerView()
-        loadPosts()
+        loadPosts(currentUserId)
 
         binding.swipeRefreshLayout.setOnRefreshListener {
-            loadPosts()
+            loadPosts(currentUserId)
         }
     }
 
     private fun initRecyclerView() {
-        postAdapter = PostAdapter(userId) {
+        postAdapter = PostAdapter(userId, viewLifecycleOwner.lifecycleScope) {
             clickedPost ->
             val postDetailFragment = PostDetailFragment()
             val args = Bundle().apply {
@@ -82,10 +83,10 @@ class PostsFragment : Fragment() {
         }
     }
 
-    private fun loadPosts() {
+    private fun loadPosts(currentUserId: Long) {
         lifecycleScope.launch {
             try {
-                val posts = RetrofitClient.instance.getPostsByUserId(userId)
+                val posts = RetrofitClient.instance.getPostsByUserId(userId,currentUserId)
                 postAdapter.submitList(posts)
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "Load posts failed: ${e.message}", Toast.LENGTH_SHORT).show()
