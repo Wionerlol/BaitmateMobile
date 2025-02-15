@@ -61,9 +61,6 @@ class ForgotPasswordActivity : AppCompatActivity() {
                     binding.otpLayout.visibility = View.VISIBLE
                 } else {
                     val errorBody = response.errorBody()?.string()
-                    //val gson = Gson()
-                    //val errorResponse = gson.fromJson(errorBody, ErrorResponse::class.java)
-                    //val errorMessage = errorResponse.errorMessage
                     Toast.makeText(this@ForgotPasswordActivity, "Error: $errorBody", Toast.LENGTH_SHORT).show()
                 }
             }

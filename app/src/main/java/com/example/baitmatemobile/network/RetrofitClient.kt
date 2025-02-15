@@ -7,14 +7,13 @@ import okhttp3.OkHttpClient
 
 
 object RetrofitClient {
-    //private const val BASE_URL = "http://54.179.221.8:8080/api/"
-    private const val BASE_URL = "http://10.0.2.2:8080/api/"
-    //localhost for android emulator
+    private const val BASE_URL = "http://54.179.221.8:8080/api/"
+    //private const val BASE_URL = "http://10.0.2.2:8080/api/"
 
     private val okHttpClient = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS) // Increase connection timeout
-        .readTimeout(30, TimeUnit.SECONDS)    // Increase read timeout
-        .writeTimeout(30, TimeUnit.SECONDS)   // Increase write timeout
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
         .build()
 
     val retrofit: Retrofit by lazy {

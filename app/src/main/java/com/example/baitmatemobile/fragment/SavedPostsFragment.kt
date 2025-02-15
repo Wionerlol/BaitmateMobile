@@ -82,7 +82,14 @@ class SavedPostsFragment : Fragment() {
         lifecycleScope.launch {
             try {
                 val posts = RetrofitClient.instance.getSavedPosts(userId)
-                postAdapter.submitList(posts)
+                if (posts.isNullOrEmpty()) {
+                    binding.noSavedPostsText.visibility = View.VISIBLE
+                    binding.userSavedPosts.visibility = View.GONE
+                } else {
+                    binding.noSavedPostsText.visibility = View.GONE
+                    binding.userSavedPosts.visibility = View.VISIBLE
+                    postAdapter.submitList(posts)
+                }
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "Load saved posts failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }

@@ -53,7 +53,6 @@ class ProfileFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_profile, container, false)
 
-        profileImage = view.findViewById(R.id.profileImage)
         userNameTextView = view.findViewById(R.id.userName)
         userInfoTextView = view.findViewById(R.id.userInfo)
         followingCountTextView = view.findViewById(R.id.followingCount)

@@ -573,10 +573,10 @@ class MapFragment : Fragment() {
             val success = googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), styleRes))
 
             if (!success) {
-                Log.e("MapFragment", "地图样式解析失败")
+                Log.e("MapFragment", "Map style parsing failed")
             }
         } catch (e: Exception) {
-            Log.e("MapFragment", "应用地图样式时出错: ${e.message}")
+            Log.e("MapFragment", "Error applying map style: ${e.message}")
         }
     }
 }
