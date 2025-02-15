@@ -42,10 +42,14 @@ interface ApiService {
         suspend fun getSavedLocations(@Query("userId") userId: Long): List<FishingLocation>
 
         @POST("saved-locations/save")
-        fun saveLocation(@Query("userId") userId: Long, @Query("locationId") locationId: Long): Call<ResponseBody>
+        fun saveLocation(
+                @Query("userId") userId: Long,
+                @Query("locationId") locationId: Long): Call<ResponseBody>
 
         @POST("saved-locations/remove")
-        fun removeLocation(@Query("userId") userId: Long, @Query("locationId") locationId: Long): Call<ResponseBody>
+        fun removeLocation(
+                @Query("userId") userId: Long,
+                @Query("locationId") locationId: Long): Call<ResponseBody>
 
         @GET("locations/{id}")
         suspend fun getFishingSpotById(@Path("id") id: Long): FishingLocation
@@ -144,10 +148,16 @@ interface ApiService {
         suspend fun getFollowing(@Path("userId") userId: Long): List<User>
 
         @POST("user/{userId}/follow")
-        suspend fun followUser(@Path("userId") userId: Long, @Query("targetUserId") targetUserId: Long): Response<ResponseBody>
+        suspend fun followUser(
+                @Path("userId") userId: Long,
+                @Query("targetUserId") targetUserId: Long
+        ): Response<ResponseBody>
 
         @POST("user/{userId}/unfollow")
-        suspend fun unfollowUser(@Path("userId") userId: Long, @Query("targetUserId") targetUserId: Long): Response<ResponseBody>
+        suspend fun unfollowUser(
+                @Path("userId") userId: Long,
+                @Query("targetUserId") targetUserId: Long
+        ): Response<ResponseBody>
 
         @POST("http://54.179.124.196:5000/api/image/check")
         suspend fun checkImage(
