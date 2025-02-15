@@ -2,7 +2,6 @@ package com.example.baitmatemobile.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
-import java.time.LocalDateTime
 @Parcelize
 data class Post(
     val id: Long?,
@@ -30,7 +29,8 @@ data class CreatedPostDTO(
     val userId: Long?,
     val location: String?,
     val status: String?,
-    val imageBase64List: List<String>
+    val imageBase64List: List<String>,
+    val accuracyScore: Double?
 
 )
 

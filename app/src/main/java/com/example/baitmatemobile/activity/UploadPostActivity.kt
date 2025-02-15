@@ -8,38 +8,28 @@ import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.util.Base64
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageView
 import android.widget.ProgressBar
-import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.databinding.DataBindingUtil.setContentView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.example.baitmatemobile.R
 import com.example.baitmatemobile.adapter.PreviewImagesAdapter
 import com.example.baitmatemobile.model.CreatedPostDTO
-import com.example.baitmatemobile.model.Image
 import com.example.baitmatemobile.model.LocationDTO
-import com.example.baitmatemobile.model.Post
-import com.example.baitmatemobile.model.User
 import com.example.baitmatemobile.network.ApiService
 import com.example.baitmatemobile.network.RetrofitClient
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputLayout
-import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -281,18 +271,22 @@ class UploadPostActivity : AppCompatActivity() {
         val selectedLocationText = spinnerLocation.text.toString()
         val selectedLocation = locations.find { it.locationName in selectedLocationText }
 
-        var userId = sharedPrefs.getLong("userId",0)
+        val userId = sharedPrefs.getLong("userId",0)
 
         lifecycleScope.launch {
             try {
                 val checkImageResults = mutableListOf<String>()
+                val confidenceResults = mutableListOf<Double>()
                 for(image in imageBase64){
                     val request = ImageCheckRequest(image)
                     val response = RetrofitClient.instance.checkImage(request)
                     if (response.isSuccessful) {
+                        val responseBody = response.body()
                         val status = response.body()?.status
-                        if (status != null) {
-                            checkImageResults.add(status)
+                        val confidence = response.body()?.confidence?.average
+                        if (responseBody != null) {
+                            checkImageResults.add(status!!)
+                            confidenceResults.add(confidence!!)
                         } else {
                             throw Exception("Empty response body")
                         }
@@ -300,12 +294,18 @@ class UploadPostActivity : AppCompatActivity() {
                         throw Exception("Image check failed: ${response.code()}")
                     }
                 }
+                val confidenceAverage = if (confidenceResults.isNotEmpty()){
+                    confidenceResults.average()
+                }else{
+                    0.0
+                }
                 val post = CreatedPostDTO(
                     postTitle = title,
                     postContent = content,
                     userId = userId,
                     location = selectedLocation?.locationName,
                     status = if (checkImageResults.contains("pending")) "pending" else "approved",
+                    accuracyScore = String.format("%.2f", confidenceAverage).toDouble(),
                     imageBase64List = imageBase64
                 )
                 val createdPost = RetrofitClient.instance.createPost(post)
@@ -320,7 +320,12 @@ class UploadPostActivity : AppCompatActivity() {
 
     data class ImageCheckRequest(val image: String)
     data class ImageCheckResponse(
-        val status: String
+        val status: String,
+        val confidence: Confidence
+    )
+    data class Confidence(
+        val average: Double,
+        val max: Double
     )
 
     private fun uriToByteArray(context: Context, uri: Uri): ByteArray? {
