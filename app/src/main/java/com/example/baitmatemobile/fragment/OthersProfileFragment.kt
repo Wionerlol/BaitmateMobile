@@ -66,7 +66,6 @@ class OthersProfileFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_others_profile, container, false)
 
-        profileImage = view.findViewById(R.id.profileImage)
         userNameTextView = view.findViewById(R.id.userName)
         userInfoTextView = view.findViewById(R.id.userInfo)
         followingCountTextView = view.findViewById(R.id.followingCount)
@@ -82,11 +81,9 @@ class OthersProfileFragment : Fragment() {
             viewedUserId = it.getLong("userId", -1)
         }
 
-        // Set up ViewPager2 with the adapter
         val adapter = ProfileTabsAdapter(requireActivity(), viewedUserId)
         viewPager.adapter = adapter
 
-        // Connect TabLayout with ViewPager2
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             when (position) {
                 0 -> tab.text = "Posts"

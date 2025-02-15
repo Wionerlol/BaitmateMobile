@@ -32,8 +32,8 @@ class RegisterActivity : AppCompatActivity() {
         val email = binding.etEmail.text.toString().trim()
         val phoneNumber = binding.etPhoneNumber.text.toString().trim()
         val ageString = binding.etAge.text.toString().trim()
-        val gender = binding.etGender.text.toString().trim() // Optional
-        val address = binding.etAddress.text.toString().trim() // Optional
+        val gender = binding.etGender.text.toString().trim()
+        val address = binding.etAddress.text.toString().trim()
 
         when {
             username.isEmpty() -> {
