@@ -1,29 +1,37 @@
 package com.example.baitmatemobile.adapter
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.baitmatemobile.R
 import com.example.baitmatemobile.model.Comment
+import com.example.baitmatemobile.network.RetrofitClient
+import kotlinx.coroutines.launch
 
-class CommentAdapter : ListAdapter<Comment, CommentAdapter.CommentViewHolder>(DiffCallback()) {
+class CommentAdapter(private val lifecycleOwner: LifecycleOwner,
+                     private val userId: Long,) : ListAdapter<Comment, CommentAdapter.CommentViewHolder>(DiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CommentViewHolder {
         val itemView = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_comment, parent, false)
-        return CommentViewHolder(itemView)
+        return CommentViewHolder(itemView, lifecycleOwner, userId)
     }
 
     override fun onBindViewHolder(holder: CommentViewHolder, position: Int) {
         holder.bind(getItem(position))
     }
 
-    class CommentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class CommentViewHolder(itemView: View,
+                            private val lifecycleOwner: LifecycleOwner,
+                            private val userId: Long,) : RecyclerView.ViewHolder(itemView) {
         private val tvUsername: TextView = itemView.findViewById(R.id.tvUsername)
         private val tvComment: TextView = itemView.findViewById(R.id.tvComment)
         private val ivLike: ImageView = itemView.findViewById(R.id.ivLike)
@@ -34,12 +42,9 @@ class CommentAdapter : ListAdapter<Comment, CommentAdapter.CommentViewHolder>(Di
             tvComment.text = comment.comment ?: ""
             tvLikeCount.text = comment.likeCount?.toString() ?: "0"
 
-            ivLike.setOnClickListener {
-                val isCurrentlyLiked = (ivLike.tag as? Boolean) == true
-                val newLike = !isCurrentlyLiked
-                // ...
-                updateLikeUI(newLike, (comment.likeCount ?: 0) + (if (newLike) 1 else -1))
-            }
+            ivLike.setImageResource(if (comment.likedByCurrentUser == true) R.drawable.ic_like_filled else R.drawable.ic_like_outline)
+            ivLike.tag = comment.likedByCurrentUser
+            ivLike.setOnClickListener { toggleLike(comment)}
         }
 
         private fun updateLikeUI(isLiked: Boolean, newCount: Int) {
@@ -50,6 +55,18 @@ class CommentAdapter : ListAdapter<Comment, CommentAdapter.CommentViewHolder>(Di
             }
             tvLikeCount.text = newCount.toString()
             ivLike.tag = isLiked
+        }
+
+        private fun toggleLike(comment: Comment) {
+            lifecycleOwner.lifecycleScope.launch {
+                try {
+                    val updatedComment = RetrofitClient.instance.toggleLikeComment(comment.id ?: return@launch, userId)
+                    updateLikeUI(updatedComment.likedByCurrentUser ?: false, updatedComment.likeCount ?: 0)
+                    comment.likeCount = updatedComment.likeCount
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
         }
     }
 

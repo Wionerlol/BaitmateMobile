@@ -8,7 +8,8 @@ data class Comment(
     val id: Long?,
     val comment: String?,
     val time: String?,
-    val likeCount: Int?,
+    var likeCount: Int?,
     val user: User?,
-    val postId: Long?
+    val postId: Long?,
+    var likedByCurrentUser: Boolean?
 ): Parcelable

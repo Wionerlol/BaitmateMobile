@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Button
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -24,9 +23,7 @@ import com.example.baitmatemobile.model.CreateCommentDTO
 import com.example.baitmatemobile.model.Post
 import com.example.baitmatemobile.model.PostReportRequest
 import com.example.baitmatemobile.network.RetrofitClient
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class PostDetailFragment : Fragment() {
 
@@ -45,11 +42,11 @@ class PostDetailFragment : Fragment() {
     private var postId: Long? = null
     private var userId: Long = -1
     private var post: Post? = null
-    private val commentAdapter = CommentAdapter()
+    private lateinit var commentAdapter: CommentAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         val binding: FragmentPostDetailBinding =
             FragmentPostDetailBinding.inflate(inflater, container, false)
         binding.setFragment(this)
@@ -59,11 +56,13 @@ class PostDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val sharedPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        userId = sharedPrefs.getLong("userId", -1)
+
+        commentAdapter = CommentAdapter(viewLifecycleOwner, userId)
         initViews(view)
 
         postId = arguments?.getLong("postId") ?: -1
-        val sharedPrefs = requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        userId = sharedPrefs.getLong("userId", -1)
 
         if (postId == null || postId == -1L) {
             Toast.makeText(requireContext(), "Post not found", Toast.LENGTH_SHORT).show()
@@ -167,7 +166,8 @@ class PostDetailFragment : Fragment() {
             try {
                 val updatedPost = RetrofitClient.instance.toggleSave(postId, userId)
                 val newCount = updatedPost.savedCount ?: 0
-                val isSaved = updatedPost.savedByCurrentUser
+                //val isSaved = updatedPost.savedByCurrentUser
+                val isSaved = !((ivSave.tag as? Boolean) ?: false)
                 updateSaveUI(isSaved, newCount)
                 post?.savedCount = newCount
             } catch (e: Exception) {

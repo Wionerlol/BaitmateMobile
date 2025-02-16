@@ -7,6 +7,7 @@ import com.example.baitmatemobile.activity.CatchDetailActivity
 import com.example.baitmatemobile.activity.UploadPostActivity
 import com.example.baitmatemobile.model.CatchRecord
 import com.example.baitmatemobile.model.CatchRecordDTO
+import com.example.baitmatemobile.model.Comment
 import com.example.baitmatemobile.model.FishingLocation
 import com.example.baitmatemobile.model.ForgotPasswordRequest
 import com.example.baitmatemobile.model.LocationDTO
@@ -112,6 +113,12 @@ interface ApiService {
                 @Path("postId") postId: Long,
                 @Query("userId") userId: Long
         ): Post
+
+        @PUT("posts/comment/{commentId}/like")
+        suspend fun toggleLikeComment(
+                @Path("commentId") commentId: Long,
+                @Query("userId") userId: Long
+        ): Comment
 
         @GET("locations")
         suspend fun getLocations(): Response<List<LocationDTO>>
