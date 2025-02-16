@@ -70,7 +70,7 @@ class DiscoverFragment : Fragment() {
     }
 
     private fun loadPosts(userId: Long) {
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val posts = RetrofitClient.instance.getAllPosts(userId)
                 val filteredPosts = posts.filter { it.postStatus == "approved" || it.postStatus == "petition" }
